@@ -1,0 +1,1 @@
+activate env: source /home/kriti/Desktop/VSCode/MAD-2-Project/MAD-2-Project-HMS/env/bin/activate

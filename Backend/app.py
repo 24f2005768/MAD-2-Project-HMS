@@ -1,6 +1,7 @@
 from flask import Flask 
 from flask_sqlalchemy import SQLAlchemy
 from resources import auth_blueprint, api, api_bp
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project_database.sqlite3'
@@ -12,6 +13,8 @@ app.app_context().push()
 
 from models import db, User, Role
 db.init_app(app)
+
+CORS(app, origins=['http://localhost:5173'])
 
 from flask_security.datastore import SQLAlchemyUserDatastore
 from extensions import security 
