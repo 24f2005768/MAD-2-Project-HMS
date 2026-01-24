@@ -107,14 +107,14 @@ class Doctor(db.Model):
     doctor_app = db.relationship('Appointment', back_populates = 'app_doctor')
     doctor_pfp = db.relationship('ProfilePictures', back_populates = 'pfp_doctor')
 
-# table to store 'shift'-wise data for doctors
+# table to store 'shift'-wise data for doctors, automatic addition of dates and shifts when app iss initialized
 class Shift(db.Model):
     __tablename__ = 'shift'
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     name = db.Column(db.String)
     date = db.Column(db.Date)
-    start_time = db.Column(db.Time)
-    end_time = db.Column(db.Time)
+    start_time = db.Column(db.DateTime)
+    end_time = db.Column(db.DateTime)
 
     # manyToMany relationship with Doctor
     shift_doctor = db.relationship('Doctor', secondary = 'doctor_availability', back_populates = 'doctor_shift')
@@ -130,16 +130,18 @@ class Appointment(db.Model):
     __tablename__ = 'appointment'
     appointment_id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     date = db.Column(db.Date, nullable = False)
-    start_time = db.Column(db.Time)
-    end_time = db.Column(db.Time)
+    start_time = db.Column(db.DateTime)
+    end_time = db.Column(db.DateTime)
     status = db.Column(db.String)
 
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.doctor_id'))
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.patient_id'))
+    slot_id = db.Column(db.Integer, db.ForeignKey('slots.id'))
 
     app_doctor = db.relationship('Doctor', back_populates = 'doctor_app')
     app_patient = db.relationship('Patient', back_populates = 'patient_app')
     app_t = db.relationship('Treatment', back_populates = 't_app', uselist = False)
+    app_slots = db.relationship('Slots', back_populates = 'slots_app')
 
 class Treatment(db.Model):
     __tablename__ = 'treatment'
@@ -158,8 +160,8 @@ class Slots(db.Model):
     __tablename__ = 'slots'
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     date = db.Column(db.Date)
-    start_time = db.Column(db.Time)
-    end_time = db.Column(db.Time)
+    start_time = db.Column(db.DateTime)
+    end_time = db.Column(db.DateTime)
 
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.doctor_id'))
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.patient_id'))
@@ -167,6 +169,7 @@ class Slots(db.Model):
     # One (patient or doctor) can have multiple entries
     slots_doctor = db.relationship('Doctor', back_populates = 'doctor_slots')
     slots_patient = db.relationship('Patient', back_populates = 'patient_slots')
+    slots_app = db.relationship('Appointment', back_populates = 'app_slots', uselist = False)
 
 class ProfilePictures(db.Model):
     __tablename__ = 'profile_pictures'

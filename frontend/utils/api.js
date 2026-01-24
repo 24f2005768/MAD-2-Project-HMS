@@ -13,6 +13,7 @@ export async function requestAPI(method, body = null, URL) {
     if (body != null) {
         data['body'] = JSON.stringify(body)
     }
+    console.log(data)
     
     const response = await fetch(base + URL, data)
     if (response.ok) {
@@ -20,6 +21,8 @@ export async function requestAPI(method, body = null, URL) {
     }
 
     else {
-        throw new Error(response.message)
+        const error = response.json()
+        console.log(error)
+        throw new Error(error.message)
     }
 }

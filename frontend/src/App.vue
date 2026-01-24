@@ -18,7 +18,7 @@
 <template>
   <Header />
   <!-- <Navbar /> -->
-   <div  class = 'flex-grow-1 align-items-center' >
+   <div  class = 'd-flex flex-grow-1 align-items-center' >
     <router-view/>
 
    </div>

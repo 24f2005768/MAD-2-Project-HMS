@@ -5,6 +5,10 @@ class DateField(fields.Raw):
     def format(self, value):
         return datetime.strftime(value, '%d-%m-%Y')
 
+class TimeField(fields.Raw):
+    def format(self, value):        
+        return datetime.strftime(value, '%H-%M')
+
 admin_fields = {
     "name": fields.String
 }
@@ -12,7 +16,6 @@ admin_fields = {
 user_fields = {
     "user_id": fields.Integer,
     "user_name": fields.String,
-    # "user_password": fields.String,
     "contact_number": fields.String,
     "email": fields.String,
     "role": fields.String(attribute=lambda user:user.role()),
@@ -29,7 +32,7 @@ department_fields = {
 doctor_fields = {
     "doctor_id": fields.Integer,
     "name": fields.String,
-    "dob": fields.DateTime,
+    "dob": DateField,
     "description": fields.String,
     "gender": fields.String,
     "status": fields.String,
@@ -45,4 +48,13 @@ patient_fields = {
     "weight": fields.String,
     "status": fields.String,
     "patient_user": fields.Nested(user_fields)
+}
+
+appointment_fields = {
+    "appointment_id": fields.Integer,
+    "date": DateField,
+    "start_time": TimeField,
+    "end_time": TimeField,
+    "app_doctor": fields.Nested(doctor_fields),
+    "app_patient": fields.Nested(patient_fields),
 }

@@ -1,6 +1,9 @@
 <template>
+    <nav class = 'navbar navbar-expand-lg header'>
+        <div class = 'navbar-brand' style="color: white;margin-left: 3px;">LDH Hospital</div>
+    </nav>
     <div>
-        <h1 class = 'header'>LDH Hospital</h1>
+        <!-- <h1 class = 'header'>LDH Hospital</h1> -->
     </div>
 </template>
 

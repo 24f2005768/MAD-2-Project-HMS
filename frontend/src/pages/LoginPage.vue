@@ -21,6 +21,7 @@
 </template>
 
 <script>
+import { requestAPI } from '../../utils/api';
 import { useUserStore } from '@/stores/userStore';
 
 export default {
@@ -41,9 +42,14 @@ export default {
             })
             console.log(request)
             if (this.store.role == 'Admin') {
-                this.$router.push('/signup')
+                this.$router.push('/admin')
             }
-            // this.$router.push('/')
+            if (this.store.role == 'Doctor') {
+                this.$router.push('/doctor')
+            }
+            if (this.store.role == 'Patient') {
+                this.$router.push('/patient')
+            }
         }
     },
 }
