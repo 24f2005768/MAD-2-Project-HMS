@@ -1,125 +1,55 @@
 <template>
-    <div class="container d-flex flex-column align-items-center flex-grow-1">
-        <div class = 'row mb-30'>
-            <div class="card row" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title">Patients</h5>
-                    <p class="card-text">{{ patients.length }}</p>
-                </div>
-            </div>
-
-            <div class="card row" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title">Appointments</h5>
-                    <p class="card-text">Numbers</p>
-                </div>
-            </div>
-
-            <div class="card row" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title">Doctors</h5>
-                    <p class="card-text">Numbers</p>
-                </div>
-            </div>
-
-            <div class="card row" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title">Departments</h5>
-                    <p class="card-text">Numbers</p>
-                </div>
-            </div>
+    <div class="container d-flex align-items-start flex-grow-1 min-vh-80 min-vw-80">
+        <div class="nav flex-column nav-tab me-3 my-auto" id="v-tab-tab" role="tablist" aria-orientation="vertical">
+            <button class="nav-link active" id="v-tab-home-tab" data-bs-toggle="pill" data-bs-target="#v-tab-home" type="button" role="tab">Stats</button>
+            <button class="nav-link" id="v-tab-profile-tab" data-bs-toggle="pill" data-bs-target="#v-tab-profile" type="button" role="tab">Patients</button>
+            <button class="nav-link" id="v-tab-messages-tab" data-bs-toggle="pill" data-bs-target="#v-tab-messages" type="button" role="tab">Appointments</button>
+            <button class="nav-link" id="v-tab-settings-tab" data-bs-toggle="pill" data-bs-target="#v-tab-settings" type="button" role="tab">Departments</button>
+            <button class="nav-link" id="v-tab-main-tab" data-bs-toggle="pill" data-bs-target="#v-tab-main" type="button" role="tab">Doctors</button>
         </div>
 
-        <h2>Patients</h2>
-        <table class = 'table table-striped table-hover'>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>DOB</th>
-                    <th>Contact Number</th>
-                    <th>Email</th>
-                </tr>
-            </thead>
+        <div class="tab-content d-flex flex-grow-1" id="v-tab-tabContent">
+            <div class="tab-pane fade show active w-100" id="v-tab-home" role="tabpanel">
+                Statistics and Charts
+            </div>
 
-            <tbody>
-                <tr v-for="patient in patients">
-                    <td>{{ patient.patient_id }}</td>
-                    <td>{{ patient.name }}</td>
-                    <td>{{ patient.dob }}</td>
-                    <td>{{ patient.patient_user.contact_number }}</td>
-                    <td>{{ patient.patient_user.email }}</td>
-                </tr>
-            </tbody>
-        </table>
+            <div class="tab-pane fade w-100" id="v-tab-profile" role="tabpanel">
+                <AdminDashPatient />
+            </div>
 
-        <h2>Departments</h2>
-        <table class = 'table table-striped table-hover'>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                </tr>
-            </thead>
+            <div class="tab-pane fade w-100" id="v-tab-messages" role="tabpanel">
+                <AdminDashAppointment />
+            </div>
 
-            <tbody>
-                <tr v-for="dept in departments">
-                    <td>{{ dept.department_id }}</td>
-                    <td>{{ dept.name }}</td>
-                </tr>
-            </tbody>
-        </table>
+            <div class="tab-pane fade w-100" id="v-tab-settings" role="tabpanel">
+                <AdminDashDept />
+            </div>
 
-        <h2>Doctors</h2>
-        <table class = 'table table-striped table-hover'>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Contact Number</th>
-                    <th>Email</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <tr v-for="doctor in doctors">
-                    <td>{{ doctor.doctor_id }}</td>
-                    <td>{{ doctor.name }}</td>
-                    <td>{{ doctor.doctor_user.contact_number }}</td>
-                    <td>{{ doctor.doctor_user.email }}</td>
-                </tr>
-            </tbody>
-        </table>
+            <div class="tab-pane fade w-100" id="v-tab-main" role="tabpanel">
+                <AdminDashDoctor />
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
-    import { requestAPI } from '../../utils/api';
+    import AdminDashDept from '@/components/AdminDashDept.vue';
+    import AdminDashDoctor from '@/components/AdminDashDoctor.vue';
+    import AdminDashPatient from '@/components/AdminDashPatient.vue';
+    import AdminDashAppointment from '@/components/AdminDashAppointment.vue';
 
     export default {
         name: 'AdminDashboard',
         data() {
-            return {
-                patients: [],
-                doctors: [],
-                departments: []
-            }
+            return {}
         },
 
-        methods: {
-            async PopulateData() {
-                const all_patients = await requestAPI('GET', null, '/patients')
-                const all_doctors = await requestAPI('GET', null, '/doctors')
-                const all_departments = await requestAPI('GET', null, '/depts')
-                
-                this.patients = all_patients
-                this.doctors = all_doctors
-                this.departments = all_departments
-            }
-        },
-
-        mounted() {
-            this.PopulateData()
+        components: {
+            AdminDashDept,
+            AdminDashDoctor,
+            AdminDashPatient,
+            AdminDashAppointment
         }
     }
 </script>
+

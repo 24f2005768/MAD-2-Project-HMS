@@ -1,10 +1,13 @@
 <template>
-    <nav class = 'navbar navbar-expand-lg header'>
+    <nav class = 'd-flex justify-content-space-between navbar navbar-expand-lg header'>
         <div class = 'navbar-brand' style="color: white;margin-left: 3px;">LDH Hospital</div>
+        <div class="container-fluid">
+            <form class="d-flex">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+        </div>
     </nav>
-    <div>
-        <!-- <h1 class = 'header'>LDH Hospital</h1> -->
-    </div>
 </template>
 
 <style>
@@ -18,5 +21,7 @@
         color: white;
         filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.8));
         font-family: "Montserrat", sans-serif;
+        display: flex;
+        justify-content: space-between;
         }
 </style>
