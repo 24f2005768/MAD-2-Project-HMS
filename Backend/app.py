@@ -1,6 +1,6 @@
 from flask import Flask 
 from flask_sqlalchemy import SQLAlchemy
-from resources import auth_blueprint, api, api_bp
+from resources import api, api_bp
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -24,7 +24,6 @@ security.init_app(app, datastore = datastore)
 
 app.datastore = datastore
 
-app.register_blueprint(auth_blueprint)
 app.register_blueprint(api_bp)
 
 

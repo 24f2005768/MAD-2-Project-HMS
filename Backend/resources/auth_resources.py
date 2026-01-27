@@ -1,14 +1,10 @@
-from flask import Blueprint, jsonify, request, current_app, make_response
-import json
+from flask import jsonify, request, current_app
 from flask_security.utils import verify_password, hash_password, login_user, logout_user
 import datetime
-from flask_restful import Resource, marshal, fields, marshal_with, reqparse
+from flask_restful import Resource, marshal, reqparse
 
 from models import *
 from .marshal_fields import user_fields, patient_fields
-from services.user_service import UserService
-
-auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 parser = reqparse.RequestParser()
 parser.add_argument("user_name", type = str, required = True)
@@ -22,9 +18,6 @@ parser.add_argument("dob", type = str)
 parser.add_argument("gender", type = str)
 parser.add_argument("height", type = str)
 parser.add_argument("weight", type = str)
-
-marshal_fields = user_fields
-service = UserService
 
 class LoginResource(Resource):
     def post(self):
@@ -61,7 +54,6 @@ class RegisterResource(Resource):
 
         datastore = current_app.datastore
         user = User.query.filter(User.user_name == user_name).first()
-        print(user)
         
         if user is not None:
             return {'message': 'Already exists'}, 400
@@ -79,7 +71,4 @@ class RegisterResource(Resource):
                                 height = height, weight = weight)
         user.user_patient = patient
         db.session.commit()
-
-        #flask-sec login
-
         return marshal(patient, patient_fields), 201

@@ -1,14 +1,17 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import jsonify, request, current_app
 from flask_security.utils import verify_password, hash_password
 import datetime
 from flask_restful import Resource, marshal, reqparse
 
 from models import *
-from .marshal_fields import doctor_fields
+from .marshal_fields import doctor_fields, appointment_fields
 
-auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/doctor')
+get_parser = reqparse.RequestParser()
+get_parser.add_argument('appointment', type = str, location = 'args')
+get_parser.add_argument('limit', type = str, location = 'args')
 
 parser = reqparse.RequestParser()
+
 parser.add_argument("user_name", type = str)
 parser.add_argument("user_password", type = str)
 parser.add_argument("email", type = str)
@@ -41,7 +44,7 @@ class DoctorResources(Resource):
         user = datastore.find_user(user_name = user_name)
 
         if user:
-            return jsonify({'message': 'Already exists'}), 400
+            return jsonify({'message': 'Already exists'}), 404
 
         # add as user
         user = datastore.create_user(user_name = user_name, user_password = hash_password(user_password), 
@@ -58,10 +61,20 @@ class DoctorResources(Resource):
     
     def get(self, doctor_id):
         doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
-        if doctor:
+        if not doctor:
+            return 'Not found', 404
+        
+        # flag to see if appointments of this particular doctor is required
+        args = get_parser.parse_args()
+        flag = args.get('appointment')
+
+        if flag == None: 
             return marshal(doctor, doctor_fields), 200
         else:
-            400
+            doctor_data = marshal(doctor, doctor_fields)
+            apt = Appointment.query.all()
+            doctor_data['appointments'] = marshal(apt, appointment_fields)
+            return doctor_data, 200
 
     def delete(self, doctor_id):
         doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
@@ -69,9 +82,23 @@ class DoctorResources(Resource):
             db.session.delete(doctor)
             db.session.commit()
             return 200
-        return 400
+        return 404
+    
+    def patch(self, doctor_id):
+        doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
+        if not doctor:
+            return 'Not found', 404
+        
+        data = request.get_json()
+        for key in data:
+            setattr(doctor, key, data[key])
+        db.session.commit()
+        return marshal(doctor, doctor_fields)
     
 class AllDoctorResources(Resource):
     def get(self):
-        all_doctors = Doctor.query.all()
+        args = get_parser.parse_args()
+        flag = args.get('limit')
+        if flag == None:
+            all_doctors = Doctor.query.all()
         return marshal(all_doctors, doctor_fields), 200
