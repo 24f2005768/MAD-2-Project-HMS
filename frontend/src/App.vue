@@ -15,7 +15,7 @@
 
 <template>
   <Header />
-   <div  class = 'd-flex flex-grow-1 align-items-center' >
+   <div  class = 'd-flex flex-grow-1 align-items-start' >
     <router-view/>
    </div>
   <Footer />

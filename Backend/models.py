@@ -84,6 +84,12 @@ class Department(db.Model):
     doctors = db.relationship('Doctor', back_populates = 'dept')
     department_pfp = db.relationship('ProfilePictures', back_populates = 'pfp_department')
 
+# association table for Doctor and Shift
+doctor_availability = db.Table('doctor_availability',
+    db.Column('doctor_id', db.Integer, db.ForeignKey('doctor.doctor_id')),
+    db.Column('shift_id', db.Integer, db.ForeignKey('shift.id'))
+)
+
 class Doctor(db.Model):
     __tablename__ = 'doctor'
     doctor_id = db.Column(db.Integer, primary_key = True, autoincrement = True)
@@ -101,13 +107,13 @@ class Doctor(db.Model):
     # Many doctors can have one department
     dept = db.relationship('Department', back_populates = 'doctors')
     # manyToMany relationship with Shift
-    doctor_shift = db.relationship('Shift', secondary = 'doctor_availability', back_populates = 'shift_doctor')
+    doctor_shift = db.relationship('Shift', secondary = doctor_availability, back_populates = 'shift_doctor')
     # oneToMany relationship with Slots
     doctor_slots = db.relationship('Slots', back_populates = 'slots_doctor')
     doctor_app = db.relationship('Appointment', back_populates = 'app_doctor')
     doctor_pfp = db.relationship('ProfilePictures', back_populates = 'pfp_doctor')
 
-# table to store 'shift'-wise data for doctors, automatic addition of dates and shifts when app iss initialized
+# table to store 'shift'-wise data for doctors, automatic addition of dates and shifts when app is initialized
 class Shift(db.Model):
     __tablename__ = 'shift'
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
@@ -117,15 +123,9 @@ class Shift(db.Model):
     end_time = db.Column(db.DateTime)
 
     # manyToMany relationship with Doctor
-    shift_doctor = db.relationship('Doctor', secondary = 'doctor_availability', back_populates = 'doctor_shift')
+    shift_doctor = db.relationship('Doctor', secondary = doctor_availability, back_populates = 'doctor_shift')
     
-# association table for Doctor and Shift
-class DoctorAvailability(db.Model):
-    __tablename__ = 'doctor_availability'
-    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.doctor_id'))
-    shift_id = db.Column(db.Integer, db.ForeignKey('shift.id'))
-
+# Main table to store appointments of patients
 class Appointment(db.Model):
     __tablename__ = 'appointment'
     appointment_id = db.Column(db.Integer, primary_key = True, autoincrement = True)
@@ -156,6 +156,7 @@ class Treatment(db.Model):
     t_app = db.relationship('Appointment', back_populates = 'app_t')
 
 # temporary table to store 15-15 minutes sessions for doctors and patients
+# rows are added when a doctor provide shift and date, shift is broken into 15-15 minutes slots 
 class Slots(db.Model):
     __tablename__ = 'slots'
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)

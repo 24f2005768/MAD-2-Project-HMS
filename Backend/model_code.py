@@ -1,8 +1,13 @@
 from flask import current_app
 from flask_security.utils import hash_password
+from datetime import date, timedelta, time
 
 from app import *
 from models import *
+
+past_week_dates = []
+date_today = date.today()
+past_week_dates = [(date_today + timedelta(days = -i)) for i in range(1,8)]
 
 datastore = current_app.datastore
 
@@ -60,5 +65,34 @@ db.session.add(dept3)
 
 dept4 = Department(name = 'Gastrology')
 db.session.add(dept4)
+
+# Past Appointments
+
+patient1 = db.get_or_404(Patient, 1)
+patient2 = db.get_or_404(Patient, 2)
+
+doctor1 = db.get_or_404(Doctor, 1)
+
+d = past_week_dates[1]
+apt1 = Appointment(date = d, start_time = datetime(year = d.year, month = d.month, day = d.day, hour = 9), 
+                   end_time = datetime(year = d.year, month = d.month, day = d.day, hour = 9, minute = 15),
+                   status = 'Completed', doctor_id = doctor1.doctor_id, patient_id = patient2.patient_id)
+apt1.app_t = Treatment(diagnosis = 'Some diagnosis from doctor', notes = 'Some notes from doctor', prescription = 'Some prescription from doctor', tests = 'Some tests from doctor')
+db.session.add(apt1)
+
+d = past_week_dates[2]
+apt2 = Appointment(date = d, start_time = datetime(year = d.year, month = d.month, day = d.day, hour = 9, minute = 45), 
+                   end_time = datetime(year = d.year, month = d.month, day = d.day, hour = 10),
+                   status = 'Completed', doctor_id = doctor1.doctor_id, patient_id = patient1.patient_id)
+apt2.app_t = Treatment(diagnosis = 'Some diagnosis from doctor', notes = 'Some notes from doctor', prescription = 'Some prescription from doctor', tests = 'Some tests from doctor')
+db.session.add(apt2)
+
+d = past_week_dates[4]
+apt3 = Appointment(date = d, start_time = datetime(year = d.year, month = d.month, day = d.day, hour = 11), 
+                   end_time = datetime(year = d.year, month = d.month, day = d.day, hour = 11, minute = 15),
+                   status = 'Completed', doctor_id = doctor1.doctor_id, patient_id = patient2.patient_id)
+apt3.app_t = Treatment(diagnosis = 'Some diagnosis from doctor', notes = 'Some notes from doctor', prescription = 'Some prescription from doctor', tests = 'Some tests from doctor')
+db.session.add(apt3)
+
 
 db.session.commit()

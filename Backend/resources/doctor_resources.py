@@ -1,15 +1,18 @@
 from flask import jsonify, request, current_app
 from flask_security.utils import verify_password, hash_password
-import datetime
+from datetime import date
 from flask_restful import Resource, marshal, reqparse
 
 from models import *
-from .marshal_fields import doctor_fields, appointment_fields
+from .marshal_fields import doctor_fields, appointment_fields, shift_fields
 
+# parser for GET requests
 get_parser = reqparse.RequestParser()
-get_parser.add_argument('appointment', type = str, location = 'args')
-get_parser.add_argument('limit', type = str, location = 'args')
+get_parser.add_argument('past_appointment', type = str, location = 'args')
+get_parser.add_argument('upcoming_appointment', type = str, location = 'args')
+get_parser.add_argument('availability', type = str, location = 'args')
 
+# parser for POST requests
 parser = reqparse.RequestParser()
 
 parser.add_argument("user_name", type = str)
@@ -63,18 +66,36 @@ class DoctorResources(Resource):
         doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
         if not doctor:
             return 'Not found', 404
-        
+
+        # base data, this will always be sent
+        doctor_data = marshal(doctor, doctor_fields)        
+
         # flag to see if appointments of this particular doctor is required
         args = get_parser.parse_args()
-        flag = args.get('appointment')
+        flag1 = args.get('upcoming_appointment')
+        flag2 = args.get('past_appointment')
+        flag3 = args.get('availability')
 
-        if flag == None: 
-            return marshal(doctor, doctor_fields), 200
-        else:
-            doctor_data = marshal(doctor, doctor_fields)
-            apt = Appointment.query.all()
-            doctor_data['appointments'] = marshal(apt, appointment_fields)
+        if (flag1 == None) and (flag2 == None) and (flag3 == None): 
             return doctor_data, 200
+        
+        # doctor availability for the coming dates
+        da_list = []
+        da = doctor.doctor_shift
+        for a in da:
+            if a.date >= date.today():
+                da_list += [a]
+        doctor_data['availability'] = marshal(da_list, shift_fields)
+
+        # this doctor's past appointments
+        past_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date < date.today()).all()
+        doctor_data['past_appointment'] = marshal(past_apt, appointment_fields)
+
+        # this doctor's upcoming appointments
+        upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date >= date.today()).all()
+        doctor_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
+
+        return doctor_data, 200
 
     def delete(self, doctor_id):
         doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()

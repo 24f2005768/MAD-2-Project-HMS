@@ -1,11 +1,14 @@
 <template>
-    <h2>Patients</h2>
-    <p>
-        <button class = 'btn btn-primary' type="button" data-bs-toggle="collapse" data-bs-target="#add-dept-button">
-            Add
-        </button>
-    </p>
+    <div class = "container">
+        <div class = "d-flex justify-content-between">
+            <h2>Patients</h2>
 
+            <button class = 'btn btn-primary' type="button" data-bs-toggle="collapse" data-bs-target="#add-dept-button">
+                Add
+            </button>
+        </div>
+    </div>
+    <!-- Add patient  -->
     <div class = 'collapse' id = 'add-dept-button'>
         <div class = 'card card-body'>
             <form @submit.prevent = "RegisterPatient">
@@ -53,7 +56,7 @@
 
                     <div class="row">
                         <div class="col-md row-sm mb-3 form-floating">
-                            <select class="form-select" aria-label="Default select example">
+                            <select class="form-select">
                                 <option selected>Select your gender</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>

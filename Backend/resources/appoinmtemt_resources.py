@@ -3,6 +3,7 @@ from flask_restful import Resource, marshal, reqparse
 
 from models import *
 from .marshal_fields import appointment_fields
+from datetime import date
 
 parser = reqparse.RequestParser()
 parser.add_argument("date", type = date)

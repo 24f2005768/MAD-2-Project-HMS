@@ -54,7 +54,8 @@
                     <p>{{ dept.description }}</p>
                 </div>
             </div>
-
+            
+            <!-- Modal  -->
             <div class="modal fade" :id = "`update${dept.department_id}`" tabindex="-1">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">

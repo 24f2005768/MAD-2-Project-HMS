@@ -1,6 +1,6 @@
 from flask import Flask 
 from flask_sqlalchemy import SQLAlchemy
-from resources import api, api_bp
+from resources import api_bp
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -25,11 +25,6 @@ security.init_app(app, datastore = datastore)
 app.datastore = datastore
 
 app.register_blueprint(api_bp)
-
-
-@app.route('/')
-def home():
-    return 'hello'
 
 if __name__ == '__main__':
     app.run(debug = True)
