@@ -4,8 +4,9 @@ from flask_restful import Api
 from resources.auth_resources import LoginResource, RegisterResource, LogoutResource
 from resources.doctor_resources import DoctorResources, AllDoctorResources
 from resources.patient_resources import PatientResources, AllPatientResources
-from resources.appoinmtemt_resources import AppointmentResources, AllAppointmentResources
+from resources.appoinmtemt_resources import AppointmentResources, AllAppointmentResources, SelectShift, BookAppointment
 from resources.department_resources import DepartmentResources, AllDepartmentResources
+from resources.search_resources import AdminSearch
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 api = Api(api_bp)
@@ -29,3 +30,8 @@ api.add_resource(AllPatientResources, "/patients")
 # Appointment Routes
 api.add_resource(AppointmentResources, '/appointment', 'appointment/<int:appointment_id>')
 api.add_resource(AllAppointmentResources, '/appointments')
+api.add_resource(SelectShift, '/select-shift/<int:doctor_id>/<int:shift_id>')
+api.add_resource(BookAppointment, '/book-appointment/<int:slot_id>')
+
+# Search Routes
+api.add_resource(AdminSearch, "/admin/search")

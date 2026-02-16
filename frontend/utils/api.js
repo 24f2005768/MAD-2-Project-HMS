@@ -20,9 +20,25 @@ export async function requestAPI(method, body = null, URL) {
         return response.json()
     }
 
+    // else {
+    //     const error = response.json()
+    //     // console.log(error)
+    //     throw new Error(error.message)
+    // }
+
     else {
-        const error = response.json()
-        // console.log(error)
-        throw new Error(error.message)
+        let errorData;
+        try {
+            errorData = await response.json()
+        }
+        catch{
+            errorData = { message: `HTTP error ${response.status}` };
+        }
+
+        const error = new Error(errorData.message || "Request failed")
+        error.status = response.status
+        error.data = errorData
+
+        throw error
     }
 }

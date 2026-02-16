@@ -1,4 +1,15 @@
 <template>
+
+    <div class = "container">
+      <div class = "d-flex gap-3 flex-column">
+        <div>
+          <button>HI</button>
+        </div>
+        <div>
+          <button>Hello</button>
+        </div>
+      </div>
+    </div>
     <h3>I am working</h3>
     <!-- Button trigger modal -->
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">

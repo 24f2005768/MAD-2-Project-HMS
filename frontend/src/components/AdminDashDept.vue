@@ -45,49 +45,13 @@
                 <div class = 'accordion-body'>
                     <div class = 'conatiner'>
                         <div class = 'd-flex justify-content-between'>
-                            <h3 class = 'col-sm-10'>{{ dept.name }}</h3>
-                            <div class = 'col'><button type = 'button' class = 'btn btn-primary' data-bs-toggle = "modal" :data-bs-target = '`#update${dept.department_id}`'>Update</button></div>
-                            <div class = 'col'><button type = 'button' class = 'btn btn-primary'>Delete</button></div>
+                            <h3 class = 'col-sm-10'><RouterLink :to = "`/admin/dept/${dept.department_id}`">{{ dept.name }}</RouterLink></h3>
                         </div>
                     </div>
 
                     <p>{{ dept.description }}</p>
                 </div>
-            </div>
-            
-            <!-- Modal  -->
-            <div class="modal fade" :id = "`update${dept.department_id}`" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Update Department</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-
-                        <div class="modal-body">
-                            <form>
-                                <div class="col-md row-sm mb-3 form-floating form-floating">
-                                    <input type="text" class="form-control" v-model = 'dept.name'
-                                    id="floatingInput">
-                                    <label for="dept_name" class="form-label">Name</label>
-                                </div>
-
-                                <div class="col-md row-sm mb-3 form-floating form-floating">
-                                    <textarea class="form-control" v-model = 'dept.description'
-                                    id="floatingInput"></textarea>
-                                    <label for="desc" class="form-label">Description</label>    
-                                </div>                            
-                            </form>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            </div>            
         </div>
     </div>
 </template>

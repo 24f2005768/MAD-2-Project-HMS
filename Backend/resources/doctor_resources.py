@@ -65,7 +65,7 @@ class DoctorResources(Resource):
     def get(self, doctor_id):
         doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
         if not doctor:
-            return 'Not found', 404
+            return "Doctor does not exists", 404
 
         # base data, this will always be sent
         doctor_data = marshal(doctor, doctor_fields)        
@@ -87,6 +87,10 @@ class DoctorResources(Resource):
                 da_list += [a]
         doctor_data['availability'] = marshal(da_list, shift_fields)
 
+        # only return base data and availability 
+        if (flag1 == None) and (flag2 == None) and (flag3):
+            return doctor_data, 200
+
         # this doctor's past appointments
         past_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date < date.today()).all()
         doctor_data['past_appointment'] = marshal(past_apt, appointment_fields)
@@ -103,16 +107,38 @@ class DoctorResources(Resource):
             db.session.delete(doctor)
             db.session.commit()
             return 200
-        return 404
+        return "Doctor does not exists", 404
     
     def patch(self, doctor_id):
         doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
         if not doctor:
-            return 'Not found', 404
-        
+            return "Doctor does not exists", 404
+
         data = request.get_json()
         for key in data:
-            setattr(doctor, key, data[key])
+            # check if DOB is updated
+            if key == 'dob' and data[key]:
+                try:
+                    dob = datetime.strptime(data[key], '%d-%m-%Y')
+                except:
+                    dob = datetime.strptime(data[key], '%Y-%m-%d')
+                setattr(doctor, key, dob)
+
+            # check if the doctor is blacklisted
+            if key == 'blacklist':
+                if doctor.doctor_user.blacklisted == False:
+                    # blackist this doctor
+                    doctor.doctor_user.blacklisted = True
+                    # set the active to false so the doctor cannot login
+                    doctor.doctor_user.active = False
+
+                else:
+                    # undo blackist
+                    doctor.doctor_user.blacklisted = False
+                    # set the active to true so the doctor can login
+                    doctor.doctor_user.active = True
+            else:
+                setattr(doctor, key, data[key])
         db.session.commit()
         return marshal(doctor, doctor_fields)
     

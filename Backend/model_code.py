@@ -1,6 +1,7 @@
 from flask import current_app
 from flask_security.utils import hash_password
 from datetime import date, timedelta, time
+import random
 
 from app import *
 from models import *
@@ -21,6 +22,62 @@ user2 = datastore.create_user(user_name = 'littledeer', user_password = hash_pas
 datastore.add_role_to_user(user2, 'Patient')
 user2.user_patient = Patient(name = 'Kriti Tiwari', dob = date(2004, 9, 18), gender = 'Female', height = 163, weight = 50)
 db.session.add(user2)
+
+user3 = datastore.create_user(user_name='Saroj',user_password=hash_password('saroj'),contact_number='5865194463',email='s@email.com')
+datastore.add_role_to_user(user3, 'Patient')
+user3.user_patient = Patient(name='Saroj Mishra',dob=date(1976, 6, 22),gender='Female',height='162',weight='75')
+db.session.add(user3)
+
+user4 = datastore.create_user(user_name='Aadi',user_password=hash_password('aaditya'),contact_number='8030974434',email='a@email.com')
+datastore.add_role_to_user(user4, 'Patient')
+user4.user_patient = Patient(name='Aadi Trivedi',dob=date(2005, 10, 4),gender='Male',height='183',weight='64')
+db.session.add(user4)
+
+user5 = datastore.create_user(user_name='Shruti',user_password=hash_password('shruti'),contact_number='2155059723',email='sh@email.com')
+datastore.add_role_to_user(user5, 'Patient')
+user5.user_patient = Patient(name='Shruti Hasan',dob=date(2001, 8, 10),gender='Female',height='170',weight='65')
+db.session.add(user5)
+
+user6 = datastore.create_user(user_name='Dheeraj',user_password=hash_password('dheeraj'),contact_number='5207633762',email='dc@gmail.com')
+datastore.add_role_to_user(user6, 'Patient')
+user6.user_patient = Patient(name='Dheeraj Chauhan',dob=date(1984, 3, 11),gender='Male',height='155',weight='52')
+db.session.add(user6)
+
+user7 = datastore.create_user(user_name='Jason',user_password=hash_password('jason'),contact_number='4240629978',email='jp@gmail.com')
+datastore.add_role_to_user(user7, 'Patient')
+user7.user_patient = Patient(name='Jason Perry',dob=date(2013, 4, 13),gender='Male',height='166',weight='68')
+db.session.add(user7)
+
+user8 = datastore.create_user(user_name='Tom',user_password=hash_password('tommy'),contact_number='9355035218',email='th@gmail.com')
+datastore.add_role_to_user(user8, 'Patient')
+user8.user_patient = Patient(name='Tom Hilfiger',dob=date(2003, 5, 4),gender='Male',height='175',weight='98')
+db.session.add(user8)
+
+user9 = datastore.create_user(user_name='Viena',user_password=hash_password('viena'),contact_number='9576063488',email='vs@gmail.com')
+datastore.add_role_to_user(user9, 'Patient')
+user9.user_patient = Patient(name='Viena Skye',dob=date(1994, 10, 7),gender='Female',height='140',weight='70')
+db.session.add(user9)
+
+# Pediatrics patients
+user10 = datastore.create_user(user_name='Kashish',user_password=hash_password('kashish'),contact_number='1149508564',email='km@gmail.com')
+datastore.add_role_to_user(user10, 'Patient')
+user10.user_patient = Patient(name='Kashish Mathur',dob=date(2014, 11, 6),gender='Female',height='149',weight='82')
+db.session.add(user10)
+
+user11 = datastore.create_user(user_name='Rudraksh',user_password=hash_password('rudraksh'),contact_number='3127523027',email='rp@gmail.com')
+datastore.add_role_to_user(user11, 'Patient')
+user11.user_patient = Patient(name='Rudraksh Patel',dob=date(2024, 9, 4),gender='Male',height='56',weight='4.5')
+db.session.add(user11)
+
+user12 = datastore.create_user(user_name='Vipul',user_password=hash_password('vipul'),contact_number='1024037587',email='vr@gmail.com')
+datastore.add_role_to_user(user12, 'Patient')
+user12.user_patient = Patient(name='Vipul Raj',dob=date(2010, 1, 4),gender='Male',height='130',weight='48')
+db.session.add(user12)
+
+user13 = datastore.create_user(user_name='Anamika',user_password=hash_password('anamika'),contact_number='9040428872',email='as@gmail.com')
+datastore.add_role_to_user(user13, 'Patient')
+user13.user_patient = Patient(name='Anamika Sen',dob=date(2018, 7, 30),gender='Female',height='100',weight='25')
+db.session.add(user13)
 
 # Doctors 
 user1 = datastore.create_user(user_name = 'Ganesh_heart', user_password = hash_password('ganesh'), contact_number = '5746160792', email = 'g@email.com')
@@ -68,31 +125,60 @@ db.session.add(dept4)
 
 # Past Appointments
 
-patient1 = db.get_or_404(Patient, 1)
-patient2 = db.get_or_404(Patient, 2)
+doctor1 = db.session.get(Doctor, 1)
+doctor2 = db.session.get(Doctor, 2)
+doctor3 = db.session.get(Doctor, 3)
+doctor4 = db.session.get(Doctor, 4)
+doctor5 = db.session.get(Doctor, 5)
+doctor6 = db.session.get(Doctor, 6)
 
-doctor1 = db.get_or_404(Doctor, 1)
+patient1 = db.session.get(Patient, 1)
+patient2 = db.session.get(Patient, 2) 
+patient3 = db.session.get(Patient, 3)
+patient4 = db.session.get(Patient, 4)
+patient5 = db.session.get(Patient, 5)
+patient6 = db.session.get(Patient, 6) 
+patient7 = db.session.get(Patient, 7)
+patient8 = db.session.get(Patient, 8) 
+patient9 = db.session.get(Patient, 9)
+patient10 = db.session.get(Patient, 10)
+patient11 = db.session.get(Patient, 11)
+patient12 = db.session.get(Patient, 12)
+patient13 = db.session.get(Patient, 13)
 
-d = past_week_dates[1]
-apt1 = Appointment(date = d, start_time = datetime(year = d.year, month = d.month, day = d.day, hour = 9), 
-                   end_time = datetime(year = d.year, month = d.month, day = d.day, hour = 9, minute = 15),
-                   status = 'Completed', doctor_id = doctor1.doctor_id, patient_id = patient2.patient_id)
-apt1.app_t = Treatment(diagnosis = 'Some diagnosis from doctor', notes = 'Some notes from doctor', prescription = 'Some prescription from doctor', tests = 'Some tests from doctor')
-db.session.add(apt1)
+general_patients = [patient1, patient2, patient3, patient4, patient5, patient6, patient8, patient9]
+pediatric_patients = [patient7, patient10, patient11, patient12, patient13]
+all_doctors = [doctor1, doctor2, doctor3, doctor4, doctor5, doctor6]
 
-d = past_week_dates[2]
-apt2 = Appointment(date = d, start_time = datetime(year = d.year, month = d.month, day = d.day, hour = 9, minute = 45), 
-                   end_time = datetime(year = d.year, month = d.month, day = d.day, hour = 10),
-                   status = 'Completed', doctor_id = doctor1.doctor_id, patient_id = patient1.patient_id)
-apt2.app_t = Treatment(diagnosis = 'Some diagnosis from doctor', notes = 'Some notes from doctor', prescription = 'Some prescription from doctor', tests = 'Some tests from doctor')
-db.session.add(apt2)
+time_slots = [
+    (9, 0), (9, 15), (9, 30), (9, 45), 
+    (10, 0), (10, 15), (10, 30), (10, 45), 
+    (11, 0), (11, 15), (11, 30), (11, 45),
+    (14, 0), (14, 15), (14, 30), (14, 45), 
+    (15, 0), (15, 15), (15, 30), (15, 45), 
+    (16, 0), (16, 15), (16, 30), (16, 45),
+    (20, 0), (20, 15), (20, 30), (20, 45), 
+    (21, 0), (21, 15), (21, 30), (21, 45), 
+    (22, 0), (22, 15), (22, 30), (22, 45)
+]
 
-d = past_week_dates[4]
-apt3 = Appointment(date = d, start_time = datetime(year = d.year, month = d.month, day = d.day, hour = 11), 
-                   end_time = datetime(year = d.year, month = d.month, day = d.day, hour = 11, minute = 15),
-                   status = 'Completed', doctor_id = doctor1.doctor_id, patient_id = patient2.patient_id)
-apt3.app_t = Treatment(diagnosis = 'Some diagnosis from doctor', notes = 'Some notes from doctor', prescription = 'Some prescription from doctor', tests = 'Some tests from doctor')
-db.session.add(apt3)
-
+for i in range(30):
+    d = random.choice(past_week_dates)
+    hour, minute = random.choice(time_slots)
+    start_time = datetime(year=d.year, month=d.month, day=d.day, hour=hour, minute=minute)
+    end_time = start_time + timedelta(minutes=15)
+    
+    # select a doctor
+    doctor = random.choice(all_doctors)
+    
+    if doctor.doctor_id in [3, 4]:  # Pediatric doctors
+        patient = random.choice(pediatric_patients)
+    else:
+        patient = random.choice(general_patients)
+    
+    appointment = Appointment(date=d, start_time=start_time, end_time=end_time, status='Completed', doctor_id=doctor.doctor_id, patient_id=patient.patient_id)
+    
+    appointment.app_t = Treatment(diagnosis='Some diagnosis from doctor', notes='Some notes from doctor', prescription='Some prescription from doctor', tests='Some tests from doctor')
+    db.session.add(appointment)
 
 db.session.commit()

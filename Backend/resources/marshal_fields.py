@@ -19,14 +19,17 @@ user_fields = {
     "contact_number": fields.String,
     "email": fields.String,
     "role": fields.String(attribute=lambda user:user.role()),
-    "token": fields.String(attribute=lambda user:user.get_auth_token())
+    "token": fields.String(attribute=lambda user:user.get_auth_token()),
+    "blacklisted": fields.Boolean,
+    "active": fields.Boolean
 }
 
 department_fields = {
     "department_id": fields.Integer,
     "name": fields.String,
     "description": fields.String,
-    "status": fields.String
+    "status": fields.String,
+    "doctors": fields.Nested({'name': fields.String, "description": fields.String})
 }
 
 doctor_fields = {
@@ -36,7 +39,10 @@ doctor_fields = {
     "description": fields.String,
     "gender": fields.String,
     "status": fields.String,
-    "doctor_user": fields.Nested({'contact_number': fields.String, 'email': fields.String})
+    "doctor_user": fields.Nested({
+        'contact_number': fields.String, 
+        'email': fields.String,
+        'blacklisted': fields.Boolean})
 }
 
 patient_fields = {
@@ -55,13 +61,24 @@ appointment_fields = {
     "date": DateField,
     "start_time": TimeField,
     "end_time": TimeField,
+    "status": fields.String,
     "app_doctor": fields.Nested({'name': fields.String}),
     "app_patient": fields.Nested({'name': fields.String})
 }
 
 shift_fields = {
+    "id": fields.Integer,
     "name": fields.String,
     "date": DateField,
     "start_time": TimeField,
     "end_time": TimeField
+}
+
+slot_fields = {
+    "id": fields.Integer,
+    "date": DateField,
+    "start_time": TimeField,
+    "end_time": TimeField,
+    "slots_doctor": fields.Nested({"name": fields.String}),
+    "slots_patient": fields.Nested({"name": fields.String}),
 }

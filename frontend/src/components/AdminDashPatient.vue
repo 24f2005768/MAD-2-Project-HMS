@@ -115,7 +115,8 @@
         name: 'AdminDashPatient',
         data() {
             return {
-                patients: []
+                patients: [],
+                showTable: true
             }
         },
         methods: {

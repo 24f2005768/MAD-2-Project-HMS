@@ -3,9 +3,12 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '@/pages/HomePage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
+
 import AdminDashboard from '@/pages/AdminDashboard.vue'
 import ViewPatient from '@/pages/AdminDash/ViewPatient.vue'
 import ViewDoctor from '@/pages/AdminDash/ViewDoctor.vue'
+import ViewDepartment from '@/pages/AdminDash/ViewDepartment.vue'
+import search from '@/pages/AdminDash/search.vue'
 
 import PatientDashboard from '@/pages/PatientDashboard.vue'
 import DoctorDashboard from '@/pages/DoctorDashboard.vue'
@@ -21,6 +24,8 @@ const router = createRouter({
     {path: '/admin', component: AdminDashboard},
     {path: '/admin/patient/:pid', component: ViewPatient},
     {path: '/admin/doctor/:did', component: ViewDoctor},
+    {path: '/admin/dept/:deptId', component: ViewDepartment},
+    {path: '/admin/search/:query', component: search},
 
     {path: '/patient', component: PatientDashboard},
     {path: '/doctor', component: DoctorDashboard},

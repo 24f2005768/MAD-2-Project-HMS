@@ -195,7 +195,6 @@
                     }
 
                     const update_patient = await requestAPI('PATCH', data, `/patient/${patientID}`)
-                    console.log('executed')
                 }
                 catch(error) {
                     console.error('Error updating patient:', error)

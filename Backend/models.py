@@ -163,6 +163,7 @@ class Slots(db.Model):
     date = db.Column(db.Date)
     start_time = db.Column(db.DateTime)
     end_time = db.Column(db.DateTime)
+    shift_id = db.Column(db.Integer)
 
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.doctor_id'))
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.patient_id'))
