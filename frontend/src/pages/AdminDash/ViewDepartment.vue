@@ -23,7 +23,7 @@
                     </div>
 
                     <div class = 'row'>
-                        <div class = 'col-sm-3'><img src = '../../../assets/DefaultDepartment.png' height="200px" width="200px"></div>
+                        <div class = 'col-sm-3'><img :src="`/images/${department.pfp}.png`" height="200px"></div>
                         <div class = 'col'>{{ department.description }}</div>
                     </div>
                 </div>
@@ -124,7 +124,7 @@
                 ua: false,
                 pa: false,
                 name: null,
-                description: null
+                description: null            
             }
         },
         methods: {

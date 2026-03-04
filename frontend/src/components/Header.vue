@@ -1,30 +1,71 @@
 <template>
     <nav class = 'navbar header'>
         <div class="container-fluid">
-            <div class = 'navbar-brand' style="color: white;margin-left: 3px;">LDH Hospital</div>
-            <div class = 'd-flex gap-2'>
+            <div class = 'navbar-brand' style="color: white" v-on:click="goToDashboard">LDH Hospital</div>
+
+            <!-- only show to users after they login in  -->
+            <div class = 'd-flex gap-2' v-if="store.user">
                 <form class ="d-flex">
                     <input class="form-control me-2" type="search" placeholder="Search" v-model="searchItem">
-                    <button class="btn btn-outline-success" type="submit" v-on:click="search">Search</button>
+                    <button class="btn btn-outline-success" type="submit" @click.prevent = "search">Search</button>
                 </form>
-                <a>Logout</a>
+                <a v-on:click="logout">Logout</a>
             </div>
         </div>
     </nav>
 </template>
 
 <script>
+    import { requestAPI } from '../../utils/api';
+    import { useUserStore } from '@/stores/userStore';
+
     export default {
         name: "Header",
         data() {
             return {
-                searchItem: null
+                store: useUserStore(),
+                searchItem: null,
+                errorMessage: ""
             }
         },
-
         methods: {
-            async search() {
-                this.$router.push(`/admin/search/${this.searchItem}`)
+            search() {
+                const role = this.store.role 
+                try {
+                    this.$router.push(
+                        role === "Admin" ? `/admin/search/${this.searchItem}` :
+                        role === "Doctor" ? `/doctor/search/${this.searchItem}` :
+                        role === "Patient" ? `/patient/search/${this.searchItem}` :
+                        "/login"
+                    )
+                }
+                catch(error) {
+                    this.errorHandler(error.message);
+                }
+            },
+
+            goToDashboard() {
+                if (!this.store.user) {
+                    this.$router.push("/login")
+                }
+
+                const role = this.store.role
+                this.$router.push(
+                    role === "Admin" ? "/admin" :
+                    role === "Doctor" ? "/doctor" :
+                    role === "Patient" ? "/patient" :
+                    "/login"
+                )
+            },
+
+            errorHandler(message) {
+                this.errorMessage = message;
+            },
+
+            async logout() {
+                const logout_user = await (requestAPI("POST", null, "/logout"))
+                this.store.logout();
+                this.$router.push("/login")
             }
         }
     }

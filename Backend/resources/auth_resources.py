@@ -2,6 +2,7 @@ from flask import jsonify, request, current_app
 from flask_security.utils import verify_password, hash_password, login_user, logout_user
 import datetime
 from flask_restful import Resource, marshal, reqparse
+from flask_security import auth_required, roles_required, current_user
 
 from models import *
 from .marshal_fields import user_fields, patient_fields
@@ -26,12 +27,25 @@ class LoginResource(Resource):
         user_password = args.get("user_password")
 
         user = User.query.filter(User.user_name == user_name).first()
+        if user == None:
+            return {"message": "User does not exist"}, 404
+        
         if not verify_password(user_password, user.user_password):
-            return 400  
+            return {"message": "Invalid Username or Password"}, 404
         login_user(user)   
-        return marshal(user, user_fields), 200
+
+        response_data = marshal(user, user_fields)
+        
+        # Add role-specific IDs
+        if user.role() == 'Doctor' and user.user_doctor:
+            response_data["doctor_id"] = user.user_doctor.doctor_id
+        elif user.role() == 'Patient' and user.user_patient:
+            response_data["patient_id"] = user.user_patient.patient_id
+            
+        return response_data, 200
 
 class LogoutResource(Resource):
+    @auth_required("token")
     def post(self):
         logout_user()
 
@@ -56,7 +70,7 @@ class RegisterResource(Resource):
         user = User.query.filter(User.user_name == user_name).first()
         
         if user is not None:
-            return {'message': 'Already exists'}, 400
+            return {'message': 'User Already exists'}, 400
                     
         # add as user
         user = datastore.create_user(user_name = user_name, user_password = hash_password(user_password), 

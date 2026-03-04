@@ -1,6 +1,7 @@
 from flask_security.core import UserMixin, RoleMixin
 from extensions import db
 from datetime import datetime, timedelta, date
+from dateutil.relativedelta import relativedelta
 
 # relationships
 
@@ -61,7 +62,7 @@ class Patient(db.Model):
     weight = db.Column(db.String, default = '--')
     status = db.Column(db.String) # DeletedbyAdmin
 
-    patient_profile_picture = db.Column(db.String, db.ForeignKey('profile_pictures.name'))
+    pfp = db.Column(db.String, db.ForeignKey('profile_pictures.name'))
     patient_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
 
     patient_user = db.relationship('User', back_populates = 'user_patient')
@@ -71,6 +72,17 @@ class Patient(db.Model):
     patient_app = db.relationship('Appointment', back_populates = 'app_patient', uselist = False)
     patient_pfp = db.relationship('ProfilePictures', back_populates = 'pfp_patient')
 
+    def get_age(self):
+        dob = self.dob
+        age = relativedelta(date.today(), dob)
+        res = f"{age.years} years, {age.months} months, {age.days} days"
+        return res
+    
+    def get_age_in_years(self):
+        dob = self.dob
+        age = relativedelta(date.today(), dob)
+        return age.years
+    
 class Department(db.Model):
     __tablename__ = 'department'
     department_id = db.Column(db.Integer, primary_key = True, autoincrement = True)
@@ -78,7 +90,7 @@ class Department(db.Model):
     description = db.Column(db.String, default = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum')
     status = db.Column(db.String) # DeletedbyAdmin
 
-    department_profile_picture = db.Column(db.Integer, db.ForeignKey('profile_pictures.name'))
+    pfp = db.Column(db.String, db.ForeignKey('profile_pictures.name'), default = "DefaultDepartment")
 
     # oneToMany relationship with Doctor
     doctors = db.relationship('Doctor', back_populates = 'dept')
@@ -99,7 +111,7 @@ class Doctor(db.Model):
     gender = db.Column(db.String)
     status = db.Column(db.String) # DeletedbyAdmin
 
-    doctor_profile_picture = db.Column(db.String, db.ForeignKey('profile_pictures.name'))
+    pfp = db.Column(db.String, db.ForeignKey('profile_pictures.name'))
     department_id = db.Column(db.Integer, db.ForeignKey(Department.department_id))
     doctor_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
 
@@ -118,7 +130,8 @@ class Shift(db.Model):
     __tablename__ = 'shift'
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     name = db.Column(db.String)
-    date = db.Column(db.Date)
+    # date is DateTime so we can break it into 15 minutes slots with that date and time
+    date = db.Column(db.DateTime)
     start_time = db.Column(db.DateTime)
     end_time = db.Column(db.DateTime)
 

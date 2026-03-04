@@ -11,6 +11,10 @@
                 </div>                
             </div>
 
+            <div class = "w-100 d-flex justify-content-end">
+                <button type = "button" class="btn btn-outline-secondary" onclick = 'history.back()'>Go Back</button>
+            </div>
+
             <div class = 'col'>
                 <!-- Conditional Rendering -->
                 <div class="tab-content d-flex flex-grow-1" id="v-tab-tabContent">

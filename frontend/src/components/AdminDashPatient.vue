@@ -1,5 +1,5 @@
 <template>
-    <div class = "container">
+    <div class = "container" v-bind="$attrs">
         <div class = "d-flex justify-content-between">
             <h2>Patients</h2>
 
@@ -113,6 +113,7 @@
 
     export default {
         name: 'AdminDashPatient',
+        emits: ['error'],
         data() {
             return {
                 patients: [],
@@ -121,8 +122,13 @@
         },
         methods: {
             async PopulatePatients() {
-                const all_patients = await requestAPI('GET', null, '/patients')
-                this.patients = all_patients
+                try {
+                    const all_patients = await requestAPI('GET', null, '/patients')
+                    this.patients = all_patients
+                }
+                catch(error) {
+                    this.$emit('error', error.message) 
+                }
             }
         },
         mounted() {

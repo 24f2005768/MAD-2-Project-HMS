@@ -13,7 +13,7 @@ past_week_dates = [(date_today + timedelta(days = -i)) for i in range(1,8)]
 datastore = current_app.datastore
 
 # Patients
-user1 = datastore.create_user(user_name = 'Shr_arya', user_password = hash_password('aryaa'), contact_number = '1783731407', email = 'a@gmail.com')
+user1 = datastore.create_user(user_name = 'Shr_arya', user_password = hash_password('arya'), contact_number = '1783731407', email = 'a@gmail.com')
 datastore.add_role_to_user(user1, 'Patient')
 user1.user_patient = Patient(name = 'Arya Sharma', dob = date(2007, 10, 3), gender = 'Male', height = 186, weight = 65)
 db.session.add(user1)
@@ -180,5 +180,56 @@ for i in range(30):
     
     appointment.app_t = Treatment(diagnosis='Some diagnosis from doctor', notes='Some notes from doctor', prescription='Some prescription from doctor', tests='Some tests from doctor')
     db.session.add(appointment)
+
+# Profile Pictures
+p1 = ProfilePictures(role = "Patient", name = "boy")
+p2 = ProfilePictures(role = "Patient", name = "girl")
+p3 = ProfilePictures(role = "Patient", name = "male_patient")
+p4 = ProfilePictures(role = "Patient", name = "female_patient")
+p5 = ProfilePictures(role = "Doctor", name = "FemaleDoctor")
+p6 = ProfilePictures(role = "Doctor", name = "MaleDoctor")
+p7 = ProfilePictures(role = "Department", name = "Cardiology")
+p8 = ProfilePictures(role = "Department", name = "Gastrology")
+p9 = ProfilePictures(role = "Department", name = "General Surgery")
+p10 = ProfilePictures(role = "Department", name = "Pediatrics")
+
+lst = [p1,p2,p3,p4,p4,p5,p6,p7,p8,p9,p10]
+for p in lst:
+    db.session.add(p)
+
+pics = ProfilePictures.query.all()
+
+# for departments
+depts = Department.query.all()
+
+for d in depts:
+    for p in pics:
+        if d.name == p.name:
+            d.pfp = p.name
+
+# for doctors
+doc = Doctor.query.all()
+
+for d in doc:
+    if d.gender == 'Female':
+        d.pfp = p5.name
+    else:
+        d.pfp = p6.name
+
+# for patients
+patients = Patient.query.all()
+
+for p in patients:
+    # for underage patients
+    if p.get_age_in_years() < 18:
+        if p.gender == 'Female':
+            p.pfp = p2.name
+        else:
+            p.pfp = p1.name
+    else:
+        if p.gender == "Female":
+            p.pfp = p4.name
+        else:
+            p.pfp = p3.name
 
 db.session.commit()

@@ -21,7 +21,9 @@ user_fields = {
     "role": fields.String(attribute=lambda user:user.role()),
     "token": fields.String(attribute=lambda user:user.get_auth_token()),
     "blacklisted": fields.Boolean,
-    "active": fields.Boolean
+    "active": fields.Boolean,
+    "user_doctor": fields.Nested({"doctor_id": fields.Integer}),
+    "user_patient": fields.Nested({"patient_id": fields.Integer}),
 }
 
 department_fields = {
@@ -29,7 +31,8 @@ department_fields = {
     "name": fields.String,
     "description": fields.String,
     "status": fields.String,
-    "doctors": fields.Nested({'name': fields.String, "description": fields.String})
+    "doctors": fields.Nested({'name': fields.String, "description": fields.String}),
+    "pfp": fields.String
 }
 
 doctor_fields = {
@@ -39,10 +42,13 @@ doctor_fields = {
     "description": fields.String,
     "gender": fields.String,
     "status": fields.String,
+    "pfp": fields.String,
     "doctor_user": fields.Nested({
+        'user_name': fields.String,
         'contact_number': fields.String, 
         'email': fields.String,
-        'blacklisted': fields.Boolean})
+        'blacklisted': fields.Boolean}),
+    "dept": fields.Nested({"name": fields.String})
 }
 
 patient_fields = {
@@ -53,6 +59,8 @@ patient_fields = {
     "height": fields.String,
     "weight": fields.String,
     "status": fields.String,
+    "pfp": fields.String,
+    "get_age": fields.String(attribute=lambda patient:patient.get_age()),
     "patient_user": fields.Nested({'contact_number': fields.String, 'email': fields.String})
 }
 

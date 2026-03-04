@@ -1,6 +1,7 @@
 from flask import request
 from flask_restful import Resource, marshal, reqparse
 from sqlalchemy import or_
+from flask_security import auth_required, roles_required, current_user
 
 from models import *
 from .marshal_fields import *
@@ -10,6 +11,8 @@ get_parser = reqparse.RequestParser()
 get_parser.add_argument("query", type = str, location = "args")
 
 class AdminSearch(Resource):
+    @auth_required("token")
+    @roles_required("Admin")
     def get(self):
         args = get_parser.parse_args()
         search_query = args.get("query")

@@ -1,6 +1,7 @@
-<template>
-    <div class = 'container-fluid d-flex justify-content-center align-items-center'>
-        <div class = 'row d-flex flex-column justify-content-center'>
+<template>       
+    <div class="container d-flex align-items-center justify-content-center flex-grow-1 min-vh-90 min-vw-100">
+        <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
+        <div class = 'card row d-flex flex-column justify-content-center align-items-center gap-2 w-50'>
             <form @submit.prevent="loginUser">
             <div class="mb-3">
                 <label for="user_name" class="form-label">User Name</label>
@@ -14,7 +15,9 @@
                 id="user_password" v-model = "user_password">
             </div>
             
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
             </form>
         </div>
     </div>
@@ -23,6 +26,7 @@
 <script>
 import { requestAPI } from '../../utils/api';
 import { useUserStore } from '@/stores/userStore';
+import errorToast from '@/components/errorToast.vue';
 
 export default {
     name: 'LoginPage',
@@ -30,27 +34,40 @@ export default {
         return {
             store: useUserStore(),
             user_name: '',
-            user_password: ''
+            user_password: '',
+            errorMessage: ''
         }
     },
-
+    components: {
+        errorToast
+    },
     methods: {
         async loginUser() {
-            const request = await this.store.login({
-                'user_name': this.user_name,
-                'user_password': this.user_password
-            })
-            console.log(request)
-            if (this.store.role == 'Admin') {
-                this.$router.push('/admin')
+            try {
+                const request = await this.store.login({
+                    'user_name': this.user_name,
+                    'user_password': this.user_password
+                })
+                
+                // console.log("user", this.store.user)
+                if (this.store.role == 'Admin') {
+                    this.$router.push('/admin')
+                }
+                if (this.store.role == 'Doctor') {
+                    this.$router.push(`/doctor`)
+                }
+                if (this.store.role == 'Patient') {
+                    this.$router.push(`/patient`)
+                }
             }
-            if (this.store.role == 'Doctor') {
-                this.$router.push('/doctor')
-            }
-            if (this.store.role == 'Patient') {
-                this.$router.push('/patient')
-            }
+            catch(error) {
+                    this.errorHandler(error.message);
+                }
+            },
+            errorHandler(message) {
+                this.errorMessage = message;
+                }
         }
-    },
-}
+    }
+
 </script>

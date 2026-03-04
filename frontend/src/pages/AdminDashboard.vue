@@ -1,5 +1,6 @@
 <template>
     <div class="container d-flex align-items-start flex-grow-1 min-vh-90 min-vw-100">
+        <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
         <div class = 'container'>
             <div class = 'col'>
                 <div class="nav nav-tab me-3 my-auto d-flex align-items-center justify-content-center" id="v-tab-tab" role="tablist" aria-orientation="vertical">
@@ -12,25 +13,29 @@
             </div>
 
             <div class = 'col'>
+                <div class = "w-100 d-flex justify-content-end mb-3">
+                    <button type = "button" class="btn btn-outline-secondary" onclick = 'history.back()'>Go Back</button>
+                </div>
+
                 <div class="tab-content d-flex flex-grow-1" id="v-tab-tabContent">
                     <div class="tab-pane fade show active w-100" id="v-tab-home" role="tabpanel">
                         Statistics and Charts
                     </div>
 
                     <div class="tab-pane fade w-100" id="v-tab-profile" role="tabpanel">
-                        <AdminDashPatient />
+                        <AdminDashPatient @error = "errorHandler"/>
                     </div>
 
                     <div class="tab-pane fade w-100" id="v-tab-messages" role="tabpanel">
-                        <AdminDashAppointment />
+                        <AdminDashAppointment @error = "errorHandler"/>
                     </div>
 
                     <div class="tab-pane fade w-100" id="v-tab-main" role="tabpanel">
-                        <AdminDashDoctor />
+                        <AdminDashDoctor @error = "errorHandler"/>
                     </div>
 
                     <div class="tab-pane fade w-100" id="v-tab-settings" role="tabpanel">
-                        <AdminDashDept />
+                        <AdminDashDept @error = "errorHandler"/>
                     </div>
                 </div>
             </div>
@@ -43,18 +48,27 @@
     import AdminDashDoctor from '@/components/AdminDashDoctor.vue';
     import AdminDashPatient from '@/components/AdminDashPatient.vue';
     import AdminDashAppointment from '@/components/AdminDashAppointment.vue';
+    import errorToast from '@/components/errorToast.vue';
 
     export default {
         name: 'AdminDashboard',
         data() {
-            return {}
+            return {
+                errorMessage: ''
+            }
         },
 
         components: {
             AdminDashDept,
             AdminDashDoctor,
             AdminDashPatient,
-            AdminDashAppointment
+            AdminDashAppointment,
+            errorToast
+        },
+        methods: {
+            errorHandler(message) {
+            this.errorMessage = message;
+                }
         }
     }
 </script>

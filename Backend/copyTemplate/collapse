@@ -1,0 +1,9 @@
+<button class = 'btn btn-primary' type="button" data-bs-toggle="collapse" data-bs-target="#add-dept-button">
+    Add
+</button>
+
+<div class = 'collapse' id = 'add-dept-button'>
+    <div class = 'card card-body'>
+        ...
+    </div>
+</div>

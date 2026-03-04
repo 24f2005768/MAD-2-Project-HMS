@@ -26,5 +26,11 @@ app.datastore = datastore
 
 app.register_blueprint(api_bp)
 
+# check if any date in the coming week is missing
+# if any date is missing, add rows to the shift table
+
+from upcoming_week import add_missing_shifts
+add_missing_shifts()
+
 if __name__ == '__main__':
     app.run(debug = True)

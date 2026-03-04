@@ -1,5 +1,5 @@
 <template>
-    <div class = 'container'>
+    <div class = 'container' v-bind="$attrs">
         <div class = 'd-flex justify-content-between'>
             <div><h2>Departments</h2></div>
             <div>
@@ -61,6 +61,7 @@
 
     export default {
         name: 'AdminDashDept',
+        emits: ['error'],
         data() {
             return {
                 departments: []
@@ -68,8 +69,13 @@
         },
         methods: {
             async PopulateDept() {
-                const all_departments = await requestAPI('GET', null, '/depts')
-                this.departments = all_departments
+                try {
+                    const all_departments = await requestAPI('GET', null, '/depts')
+                    this.departments = all_departments
+                }
+                catch(error) {
+                this.$emit('error', error.message) 
+                }
             }
         },
         mounted() {

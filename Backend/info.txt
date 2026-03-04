@@ -1,1 +1,15 @@
 activate env: source /home/kriti/Desktop/VSCode/MAD-2-Project/MAD-2-Project-HMS/env/bin/activate
+
+pip freeze: pip3 freeze > requirements.txt
+
+# making a DateTime object
+date_today = date.today()
+time = datetime.min.time()
+date_today = datetime.combine(date_today, time)
+
+# flask security
+@auth_required("token")
+
+# Check if user has permission to view this doctor
+# Admins can view any doctor, doctors can only view themselves
+if current_user.has_role('Admin') or (current_user.has_role('Doctor') and current_user.user_doctor.doctor_id == doctor_id):

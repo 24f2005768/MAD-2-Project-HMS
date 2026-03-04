@@ -21,7 +21,9 @@ export const useUserStore = defineStore('userStore', {
 
   getters: {
     isAuthenticated: (state) => state.token ? true : false,
-    role: (state) => state.user ? state.user.role : null
+    role: (state) => state.user ? state.user.role : null,
+    doctorId: (state) => state.user && state.user.doctor_id ? state.user.doctor_id : null,
+    patientId: (state) => state.user && state.user.patient_id ? state.user.patient_id : null,
   },
 
   actions: {
@@ -36,11 +38,22 @@ export const useUserStore = defineStore('userStore', {
         "email": request['email'],
         "role": request['role'],
       }
-      
+
+      // Add role-specific IDs 
+      if (request['doctor_id']) {
+        user.doctor_id = request['doctor_id'];
+      }
+      if (request['patient_id']) {
+        user.patient_id = request['patient_id'];
+      }
+      if (request['admin_id']) {
+        user.admin_id = request['admin_id'];
+      }
+
       this.token = token
       this.user = user
 
-      localStorage.setItem('user', user)
+      localStorage.setItem('user', JSON.stringify(user))
       localStorage.setItem('token', token)
 
       return user

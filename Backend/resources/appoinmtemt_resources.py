@@ -1,5 +1,6 @@
 from flask import jsonify, current_app, request
 from flask_restful import Resource, marshal, reqparse
+from flask_security import auth_required, roles_required, current_user
 
 from models import *
 from .marshal_fields import appointment_fields, slot_fields
@@ -17,16 +18,18 @@ class SelectShift(Resource):
 
 # book an appointment for a particular patient    
 class BookAppointment(Resource):
+    @auth_required("token")
     def get(self, slot_id):
         slot = Slots.query.filter(Slots.id == slot_id).first()
         return marshal(slot, slot_fields), 200
     
+    @auth_required("token")
     def patch(self, slot_id):
         slot = Slots.query.filter(Slots.id == slot_id).first()
 
         # same slot cannot be booked for two patients
         if slot.patient_id != None:
-            return "Already booked", 400
+            return {"message": "This slot is already booked"}, 400
         
         data = request.get_json()
         for key in data:
@@ -37,13 +40,15 @@ class BookAppointment(Resource):
         return marshal(slot, slot_fields), 200
 
 class AppointmentResources(Resource):
+    @auth_required("token")
     def get(self, appointment_id):
         appointment = Appointment.query.filter(Appointment.appointment_id == appointment_id).first()
         if appointment:
-            return marshal(appointment, appointment_fields)
-        return 404
+            return marshal(appointment, appointment_fields), 200
+        return {"message": "Appointment does not exist"}, 404
     
 class AllAppointmentResources(Resource):
+    @auth_required("token")
     def get(self):
         all_appointments = Appointment.query.all()
         return marshal(all_appointments, appointment_fields), 200

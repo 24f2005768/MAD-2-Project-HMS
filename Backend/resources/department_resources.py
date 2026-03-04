@@ -1,6 +1,7 @@
 from flask_restful import Resource, marshal, reqparse
 from flask import request
 from datetime import date
+from flask_security import auth_required, roles_required, current_user
 
 from models import *
 from .marshal_fields import department_fields, appointment_fields
@@ -16,6 +17,8 @@ parser.add_argument("name", type = str, required = True)
 parser.add_argument("description", type = str)
 
 class DepartmentResources(Resource):
+    @auth_required("token")
+    @roles_required("Admin")
     def post(self):
         args = parser.parse_args()
         dept_name = args.get('name')
@@ -23,16 +26,17 @@ class DepartmentResources(Resource):
 
         dept = Department.query.filter(Department.name == dept_name).first()
         if dept:
-            return 'Already exists', 400
+            return {"message": "Department does not exist"}, 404
         dept = Department(name = dept_name, description = description)
         db.session.add(dept)
         db.session.commit()
         return marshal(dept, department_fields), 200
     
+    @auth_required("token")
     def get(self, dept_id):
         dept = Department.query.filter(Department.department_id == dept_id).first()
         if not dept:
-            return "Department does not exists", 404
+            return {"message": "Department does not exist"}, 404
         
         # base data, this will always be sent
         dept_data = marshal(dept, department_fields)
@@ -59,18 +63,22 @@ class DepartmentResources(Resource):
 
         return dept_data, 200
     
+    @auth_required("token")
+    @roles_required("Admin")
     def delete(self, dept_id):
         dept = Department.query.filter(Department.department_id == dept_id).first()
         if dept:
             db.session.delete(dept)
             db.session.commit()
             return 200
-        return "Department does not exists", 404
-       
+        return {"message": "Department does not exist"}, 404
+    
+    @auth_required("token")
+    @roles_required("Admin")
     def patch(self, dept_id):
         dept = Department.query.filter(Department.department_id == dept_id).first()
         if not dept:
-            return "Department does not exists", 404
+            return {"message": "Department does not exist"}, 404
         
         data = request.get_json()
         for key in data:
@@ -79,6 +87,7 @@ class DepartmentResources(Resource):
         return marshal(dept, department_fields), 200      
 
 class AllDepartmentResources(Resource):
+    @auth_required("token")
     def get(self):
         all_dept = Department.query.all()
         return marshal(all_dept, department_fields)
