@@ -66,7 +66,7 @@ export default {
             },
             errorHandler(message) {
                 this.errorMessage = message;
-                }
+            }
         }
     }
 

@@ -90,12 +90,16 @@
                 <!-- Always visible -->
                  <div class = 'container'>
                     <div class = 'row'>
-                        <div class = 'col-sm-3'><img src = '../../../assets/DefaultDepartment.png' height="200px" width="200px"></div>
+                        <div class = 'col-sm-3'>
+                            <img :src="`/images/${patient.pfp}.png`" height="200px" width="200px">
+                        </div>
+                        
                         <div class = 'col'>
                             <p><strong>Name: </strong>{{ patient.name }}</p>
                             <p><strong>Patient ID: </strong> {{ patient.patient_id }}</p>
                             <p><strong>Gender: </strong>{{ patient.gender }}</p>
                             <p><strong>DOB: </strong>{{ patient.dob }}</p>
+                            <p><strong>Age: </strong>{{ patient.get_age }}</p>
                             <p><strong>Contact Number: </strong>{{ patient.patient_user.contact_number }}</p>
                             <p><strong>Email: </strong>{{ patient.patient_user.email }}</p>
                         </div>

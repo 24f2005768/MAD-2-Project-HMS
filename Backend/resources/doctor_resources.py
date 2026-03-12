@@ -8,7 +8,7 @@ from sqlalchemy import desc
 from models import *
 from .marshal_fields import doctor_fields, appointment_fields, shift_fields, patient_fields
 
-# parser for GET requests
+# parser for GET requests (Doctor)
 get_parser = reqparse.RequestParser()
 get_parser.add_argument('past_appointment', type = str, location = 'args')
 get_parser.add_argument('upcoming_appointment', type = str, location = 'args')
@@ -79,7 +79,6 @@ class DoctorResources(Resource):
         # Check if user has permission to view this doctor
         # Admins can view any doctor, doctors can only view themselves
         if current_user.has_role('Admin') or (current_user.has_role('Doctor') and current_user.user_doctor.doctor_id == doctor_id):
-
             doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
             if not doctor:
                 return {"message": "Doctor does not exist"}, 404
@@ -154,7 +153,7 @@ class DoctorResources(Resource):
             
             # today's appointments
             if (flag4):
-                today_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date == date.today()).all()
+                today_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date == date.today()).order_by(Appointment.start_time).all()
                 doctor_data['today_appointment'] = marshal(today_apt, appointment_fields)
             
             # flag 2
@@ -168,7 +167,9 @@ class DoctorResources(Resource):
             doctor_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
 
             return doctor_data, 200
-
+        else: 
+            return {"message": "You are not authorized"}, 403
+        
     @auth_required("token")
     @roles_required("Admin")
     def delete(self, doctor_id):
@@ -187,6 +188,7 @@ class DoctorResources(Resource):
                 return {"message": "Doctor does not exist"}, 404
 
             data = request.get_json()
+            print(data.keys())
             for key in data:
                 # check if DOB is updated
                 if key == 'dob' and data[key]:
@@ -195,10 +197,23 @@ class DoctorResources(Resource):
                     except:
                         dob = datetime.strptime(data[key], '%Y-%m-%d')
                     setattr(doctor, key, dob)
+                
+                # setting the user table related enteries manually
+                elif key == "user_name":
+                    doctor.doctor_user.user_name = data[key]
+
+                elif key == "contact_number":
+                    doctor.doctor_user.contact_number = data[key]
+
+                elif key == "email":
+                    doctor.doctor_user.email = data[key]
+
+                elif key == "password":
+                    doctor.doctor_user.user_password = hash_password(data[key])
 
                 # check if the doctor is blacklisted
-                if key == 'blacklist':
-                    # only doctor can blacklist
+                # only doctor can blacklist
+                elif key == 'blacklist':
                     if current_user.has_role("Admin"):
                         if doctor.doctor_user.blacklisted == False:
                             # blackist this doctor
@@ -269,3 +284,66 @@ class Availability(Resource):
                         s_marshaled["updated_availability"] = 0
                         shifts[d_str] += [s_marshaled]
         return shifts, 200
+    
+    @auth_required("token")
+    def patch(self, doctor_id):
+        doctor = db.get_or_404(Doctor, doctor_id)
+
+        data = request.get_json()
+        for key in data:
+            for d in data[key]:
+                if d["original_availability"] != d["updated_availability"]:
+
+                    # add any new available slots and break them into 15 minutes time
+                    if (d["original_availability"] == 0) and (d["updated_availability"] == 1):
+                        d_dt = datetime.strptime(d["date"], "%d-%m-%Y")
+                        shift = Shift.query.filter(Shift.date == d_dt, Shift.name == d["name"]).first()
+
+                        # ensure that we are not repeatedly adding shifts
+                        if shift and shift not in doctor.doctor_shift:
+                            doctor.doctor_shift.append(shift)
+
+                            start_time = shift.start_time
+                            end_time = shift.end_time
+
+                            while start_time != end_time:
+                                new_time = timedelta(minutes = 15) + start_time
+                                new_slot = Slots(date = shift.date, start_time = start_time, end_time = new_time, doctor_id = doctor.doctor_id, shift_id = shift.id)
+                                db.session.add(new_slot)
+                                start_time = new_time 
+
+                    if (d["original_availability"] == 1) and (d["updated_availability"] == 0):
+                        d_dt = datetime.strptime(d["date"], "%d-%m-%Y")
+                        shift = Shift.query.filter(Shift.date == d_dt, Shift.name == d["name"]).first()
+                        all_slots = Slots.query.filter(Slots.shift_id == shift.id).all()
+                        for slot in all_slots:
+                            # mark any appointments as cancelled
+                            db.session.delete(slot)
+                        
+                        # remove from database
+                        doctor.doctor_shift.remove(shift)
+            db.session.commit()
+
+class DoctorAppointments(Resource):
+    @auth_required("token")
+    def get(self, doctor_id):
+        # Check if user has permission to view this doctor
+        # Admins can view any doctor, doctors can only view themselves
+        if current_user.has_role('Admin') or (current_user.has_role('Doctor') and current_user.user_doctor.doctor_id == doctor_id):
+            doctor = db.get_or_404(Doctor, doctor_id)
+            if not doctor:
+                return {"message": "Doctor does not exist"}, 404
+            
+            appointments = {"today": {}, "this_week": {}, "past": {}}
+
+            today_appt = Appointment.query.filter(Appointment.date == date.today(), Appointment.doctor_id == doctor.doctor_id).order_by(Appointment.start_time).all()
+            this_week_appt = Appointment.query.filter(Appointment.date > date.today(), Appointment.doctor_id == doctor.doctor_id).order_by(Appointment.date, Appointment.start_time).all()
+            past_appt = Appointment.query.filter(Appointment.date < date.today(), Appointment.doctor_id == doctor.doctor_id).order_by(desc(Appointment.date), Appointment.start_time).all()
+
+            appointments["today"] = marshal(today_appt, appointment_fields)
+            appointments["this_week"] = marshal(this_week_appt, appointment_fields)
+            appointments["past"] = marshal(past_appt, appointment_fields)
+
+            return appointments, 200
+        else:
+            return {"message": "You are not authorized"}, 403

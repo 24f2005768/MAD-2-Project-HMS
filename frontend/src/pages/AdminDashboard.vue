@@ -1,6 +1,7 @@
 <template>
     <div class="container d-flex align-items-start flex-grow-1 min-vh-90 min-vw-100">
         <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
+
         <div class = 'container'>
             <div class = 'col'>
                 <div class="nav nav-tab me-3 my-auto d-flex align-items-center justify-content-center" id="v-tab-tab" role="tablist" aria-orientation="vertical">
@@ -44,11 +45,12 @@
 </template>
 
 <script>
+    import errorToast from '@/components/errorToast.vue';
+
     import AdminDashDept from '@/components/AdminDashDept.vue';
     import AdminDashDoctor from '@/components/AdminDashDoctor.vue';
     import AdminDashPatient from '@/components/AdminDashPatient.vue';
     import AdminDashAppointment from '@/components/AdminDashAppointment.vue';
-    import errorToast from '@/components/errorToast.vue';
 
     export default {
         name: 'AdminDashboard',
@@ -67,8 +69,8 @@
         },
         methods: {
             errorHandler(message) {
-            this.errorMessage = message;
-                }
+                this.errorMessage = message
+            }
         }
     }
 </script>

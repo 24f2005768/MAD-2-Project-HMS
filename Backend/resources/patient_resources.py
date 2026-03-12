@@ -30,13 +30,28 @@ class PatientResources(Resource):
         if (flag1 == None) and (flag2 == None): 
             return patient_data, 200
         
-        # this patient's past appointments
-        past_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date < date.today()).all()
-        patient_data['past_appointment'] = marshal(past_apt, appointment_fields)
+        # check if the user is a (doctor) or (admin, patient)
+        # if user is a doctor only show the Upcoming and Past appointments with the
+        if current_user.has_role("Doctor"):
+            doctor_id = current_user.user_doctor.doctor_id
+            doctor = db.get_or_404(Doctor, doctor_id)
 
-        # this patient's upcoming appointments
-        upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date >= date.today()).all()
-        patient_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
+            # this patient's past appointments with this doctor
+            past_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date < date.today(), Appointment.doctor_id == doctor.doctor_id).all()
+            patient_data['past_appointment'] = marshal(past_apt, appointment_fields)
+
+            # this patient's upcoming appointments with this doctor
+            upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date >= date.today(), Appointment.doctor_id == doctor.doctor_id).all()
+            patient_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
+
+        else:
+            # this patient's past appointments
+            past_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date < date.today()).all()
+            patient_data['past_appointment'] = marshal(past_apt, appointment_fields)
+
+            # this patient's upcoming appointments
+            upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date >= date.today()).all()
+            patient_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
 
         return patient_data, 200
     

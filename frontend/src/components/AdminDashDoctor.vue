@@ -147,7 +147,7 @@
                     this.doctors = all_doctors
                 }
                 catch(error) {
-                this.$emit('error', error.message) 
+                    this.$emit('error', error.message) 
                 }
             },
         },

@@ -7,9 +7,14 @@
             <div class = 'd-flex gap-2' v-if="store.user">
                 <form class ="d-flex">
                     <input class="form-control me-2" type="search" placeholder="Search" v-model="searchItem">
-                    <button class="btn btn-outline-success" type="submit" @click.prevent = "search">Search</button>
+                    <button class="btn btn-outline-success" type="submit" @click.prevent = "search">
+                        Search
+                    </button>
                 </form>
-                <a v-on:click="logout">Logout</a>
+
+                <button type="button" class="btn btn-outline-secondary" v-on:click="logout">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
             </div>
         </div>
     </nav>

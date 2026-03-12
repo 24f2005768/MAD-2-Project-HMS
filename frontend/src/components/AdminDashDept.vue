@@ -1,7 +1,10 @@
 <template>
     <div class = 'container' v-bind="$attrs">
         <div class = 'd-flex justify-content-between'>
-            <div><h2>Departments</h2></div>
+            <div>
+                <h2>Departments</h2>
+            </div>
+            
             <div>
                 <button class = 'btn btn-primary' type="button" data-bs-toggle="collapse" data-bs-target="#add-dept-button">
                     Add
@@ -22,7 +25,7 @@
                         </div> 
                                         
                         <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="text" class="form-control" placeholder="User Name*"
+                            <input type="text" class="form-control" placeholder="Description*"
                             id="desc floatingInput">
                             <label for="desc" class="form-label">Description</label>
                         </div>               

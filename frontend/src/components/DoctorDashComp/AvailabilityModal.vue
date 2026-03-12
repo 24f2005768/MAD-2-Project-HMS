@@ -1,4 +1,6 @@
 <template>
+    <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
+
     <!-- Modal -->
     <div class="modal fade" id="availModel" tabindex="-1" v-if="availabilityDict">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -41,14 +43,20 @@
 <script>
     import { requestAPI } from '../../../utils/api';
     import { useUserStore } from '@/stores/userStore';
+    import errorToast from '@/components/errorToast.vue';
 
     export default {
         name: "DoctorAvailabilityModal",
+        emits: ["error"],
         data() {
             return {
                 availabilityDict: null,
-                store: useUserStore()
+                store: useUserStore(),
+                errorMessage: ""
             }
+        },
+        components: {
+            errorToast
         },
         methods: {
             async getAvailability() {
@@ -58,11 +66,21 @@
                     this.availabilityDict = availability
                 }
                 catch(error) {
-                    console.error('Error fetching availability', error)
+                    // Propagate error to parent (DoctorAvailability)
+                    this.$emit('error', error.message)
                 }
             },
             async sendUpdatedStatus() {
-                console.log(this.availabilityDict)
+                try {
+                    const doctorID = this.store.user.doctor_id
+                    const body = this.availabilityDict
+                    const send_updated_availability = await requestAPI("PATCH", body, `/doctor/availability/${doctorID}`)
+                    await this.getAvailability()
+                }
+                catch(error) {
+                    // Propagate error to parent (DoctorAvailability)
+                    this.$emit('error', error.message)
+                }
             }
         },
         mounted() {

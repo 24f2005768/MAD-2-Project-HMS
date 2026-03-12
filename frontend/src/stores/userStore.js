@@ -23,7 +23,7 @@ export const useUserStore = defineStore('userStore', {
     isAuthenticated: (state) => state.token ? true : false,
     role: (state) => state.user ? state.user.role : null,
     doctorId: (state) => state.user && state.user.doctor_id ? state.user.doctor_id : null,
-    patientId: (state) => state.user && state.user.patient_id ? state.user.patient_id : null,
+    patientId: (state) => state.user && state.user.patient_id ? state.user.patient_id : null
   },
 
   actions: {

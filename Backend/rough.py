@@ -10,4 +10,3 @@ patient = db.get_or_404(Patient, 1)
 print(patient.get_age())
 # doctor_shift = doctor.doctor_shift
 
-

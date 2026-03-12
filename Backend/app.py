@@ -32,5 +32,10 @@ app.register_blueprint(api_bp)
 from upcoming_week import add_missing_shifts
 add_missing_shifts()
 
+# check if there are any past appointments which are not marked as completed
+
+from mark_past_appointments import mark_past_appointments_completed
+mark_past_appointments_completed()
+
 if __name__ == '__main__':
     app.run(debug = True)

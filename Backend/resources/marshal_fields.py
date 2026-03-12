@@ -64,14 +64,22 @@ patient_fields = {
     "patient_user": fields.Nested({'contact_number': fields.String, 'email': fields.String})
 }
 
+treatment_fields = {
+    "diagnosis": fields.String,
+    "notes": fields.String,
+    "prescription": fields.String,
+    "tests": fields.String
+}
+
 appointment_fields = {
     "appointment_id": fields.Integer,
     "date": DateField,
     "start_time": TimeField,
     "end_time": TimeField,
     "status": fields.String,
-    "app_doctor": fields.Nested({'name': fields.String}),
-    "app_patient": fields.Nested({'name': fields.String})
+    "app_doctor": fields.Nested({'name': fields.String, 'pfp': fields.String}),
+    "app_patient": fields.Nested({'name': fields.String, 'pfp': fields.String}),
+    "app_t": fields.Nested(treatment_fields)
 }
 
 shift_fields = {

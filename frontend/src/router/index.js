@@ -10,8 +10,11 @@ import ViewDoctor from '@/pages/AdminDash/ViewDoctor.vue'
 import ViewDepartment from '@/pages/AdminDash/ViewDepartment.vue'
 import search from '@/pages/AdminDash/search.vue'
 
-import PatientDashboard from '@/pages/PatientDashboard.vue'
 import DoctorDashboard from '@/pages/DoctorDashboard.vue'
+import DoctorDashViewPatient from '@/pages/DoctorDash/DoctorDashViewPatient.vue'
+import DoctorDashViewAppointment from '@/pages/DoctorDash/DoctorDashViewAppointment.vue'
+
+import PatientDashboard from '@/pages/PatientDashboard.vue'
 import TestPage from '@/pages/TestPage.vue'
 
 const router = createRouter({
@@ -27,8 +30,11 @@ const router = createRouter({
     {path: '/admin/dept/:deptId', component: ViewDepartment},
     {path: '/admin/search/:query', component: search},
 
-    {path: '/patient', component: PatientDashboard},
     {path: '/doctor', component: DoctorDashboard},
+    {path: '/doctor/patient/:pid', component: DoctorDashViewPatient},
+    {path: '/doctor/appointment/:aid', component: DoctorDashViewAppointment},
+
+    {path: '/patient', component: PatientDashboard},
     {path: '/test', component: TestPage}
   ],
 })
