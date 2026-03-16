@@ -27,6 +27,12 @@
                                     <button class = "btn btn-outline-primary">Reschedule</button>
                                 </div>
                             </div>
+
+                            <div v-if="a.status == 'Completed'">
+                                <RouterLink :to='`/doctor/appointment/${a.appointment_id}`'>
+                                    <button class = "btn btn-outline-secondary">View Details</button>
+                                </RouterLink>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -71,7 +77,9 @@
                             <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
                             <p class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</p>                        
                             <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
-                            <button class = "btn btn-outline-secondary">View Details</button>
+                            <RouterLink :to='`/doctor/appointment/${a.appointment_id}`'>
+                                <button class = "btn btn-outline-secondary">View Details</button>
+                            </RouterLink>
                         </div>
                     </div>
                 </div>

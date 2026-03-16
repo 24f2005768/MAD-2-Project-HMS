@@ -1,5 +1,5 @@
 <template>
-    <div v-if="doctor" class = "modal fade" id = "update-doctor-profile-modal" tabindex = "-1" v-bind="$attrs">
+    <div class = "modal fade" id = "update-doctor-profile-modal" tabindex = "-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -7,7 +7,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <form>
+                <form v-if="doctor && doctor.doctor_user" @submit.prevent = "submitForm">
                     <div class="modal-body">
                         <div class = "col-md row-sm mb-3 form-floating form-floating">
                             <input type = "text" class = "form-control" v-model = "doctor.doctor_user.user_name"
@@ -16,7 +16,7 @@
                         </div>  
 
                         <div class = "col-md row-sm mb-3 form-floating form-floating">
-                            <input type = "text" class = "form-control" v-model = "doctor.doctor_user.password" placeholder = "Enter new password"
+                            <input type = "text" class = "form-control" v-model = "password" 
                             id="floatingInput">
                             <label for = "password" class = "form-label">Password</label>
                         </div> 
@@ -54,7 +54,7 @@
                     
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" v-on:click="updateDoctorProfile">Save changes</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
                     </div>
                 </form>
             </div>
@@ -64,57 +64,38 @@
 </template>
 
 <script>
-    import { requestAPI } from '../../../utils/api';
-    import { useUserStore } from '@/stores/userStore';
-
     export default {
         name: 'DoctorProfileUpdateModal',
+        props: {
+            doctor: {
+                type: Object,
+                required: true
+            }
+        },
+        emits: ["update-profile", "error"],
         data() {
             return {
-                store: useUserStore(), 
-                doctor: null,
-                user_name: null,
-                password: null,
-                name: null,
-                dob: null,
-                contact_number: null,
-                email: null, 
-                description: null
+                password: "",
             }
         },
         methods: {
-            async getDoctor() {
+            async submitForm() {
                 try {
-                    const doctorID = this.store.user.doctor_id;
-                    const display_doctor = await requestAPI('GET', null, `/doctor/${doctorID}?past_appointment=true&upcoming_appointment=true&availability=true&today_appointment=true`)
-                    this.doctor = display_doctor
-                }
-                catch(error) {
-                    this.$emit('error', error.message)
-                }
-            },
-            async updateDoctorProfile() {
-                try{
-                    console.log("I am working")
-                    const doctorID = this.store.user.doctor_id;
                     const data = {
                         user_name: this.doctor.doctor_user.user_name,
-                        password: this.doctor.doctor_user.password,
+                        password: this.password,
                         name: this.doctor.name,
                         dob: this.doctor.dob,
-                        contact_number: this.doctor_user.doctor.name,
+                        contact_number: this.doctor.doctor_user.contact_number,
                         email: this.doctor.doctor_user.email,
                         description: this.doctor.description
                     }
-                    const update_doctor = await requestAPI('PATCH', data, `/doctor/${doctorID}`)
+                    this.$emit("update-profile", data)
                 }
                 catch(error) {
                     this.$emit('error', error.message)
                 }
             }
-        },
-        mounted() {
-            this.getDoctor()
         }
     }
 </script>

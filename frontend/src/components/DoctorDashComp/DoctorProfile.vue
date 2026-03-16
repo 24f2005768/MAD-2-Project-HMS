@@ -27,70 +27,9 @@
                                 </button>
 
                                 <!-- modal  -->
-                                 <!-- <DoctorProfileUpdateModal /> -->
-
-                                <div v-if="doctor" class = "modal fade" id = "update-doctor-profile-modal" tabindex = "-1" v-bind="$attrs">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h1 class="modal-title fs-5">Update Profile</h1>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-
-                                            <form @submit.prevent = "updateDoctorProfile">
-                                                <!-- {{ doctor }} -->
-                                                <div class="modal-body">
-                                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                                        <input type = "text" class = "form-control" v-model = "doctor.doctor_user.user_name"
-                                                        id="floatingInput">
-                                                        <label for = "user_name" class = "form-label">Username</label>
-                                                    </div>  
-
-                                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                                        <input type = "text" class = "form-control" v-model = "doctor.doctor_user.password" placeholder = "Enter new password"
-                                                        id="floatingInput">
-                                                        <label for = "password" class = "form-label">Password</label>
-                                                    </div> 
-
-                                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                                        <input type = "text" class = "form-control" v-model = "doctor.name"
-                                                        id="floatingInput">
-                                                        <label for = "name" class = "form-label">Name</label>
-                                                    </div>  
-                                                    
-                                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                                        <input type = "date" class = "form-control" v-model = "doctor.dob"
-                                                        id="floatingInput">
-                                                        <label for = "dob" class = "form-label">DOB</label>
-                                                    </div>
-
-                                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                                        <input type = "text" class = "form-control" v-model = "doctor.doctor_user.contact_number"
-                                                        id="floatingInput">
-                                                        <label for = "contact_number" class = "form-label">Contact Number</label>
-                                                    </div>
-
-                                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                                        <input type = "text" class = "form-control" v-model = "doctor.doctor_user.email"
-                                                        id="floatingInput">
-                                                        <label for = "email" class = "form-label">Email</label>
-                                                    </div>
-
-                                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                                        <input type = "text" class = "form-control" v-model = "doctor.description"
-                                                        id="floatingInput">
-                                                        <label for = "description" class = "form-label">Description</label>
-                                                    </div> 
-                                                </div>
-                                                
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                    <button type="submit" class="btn btn-primary">Save changes</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
+                                <DoctorProfileUpdateModal v-if="doctor" 
+                                :doctor = "doctor" 
+                                @update-profile="updateDoctorProfile"/>
 
                                 <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#view-profile" v-on:click="collapseProfile = !collapseProfile">
                                     <span v-if="collapseProfile">View Profile</span>
@@ -132,12 +71,33 @@
                                 <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
                                 <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
 
-                                <div v-if="a.status == 'Booked'">
-                                    <button class = "btn btn-outline-secondary">Provide Details</button>
+                                <div v-if = "a.status == 'Booked'">
+                                    <button class = "btn btn-outline-secondary" data-bs-toggle="modal" :data-bs-target="`#ongoing-appt-modal-${a.appointment_id}`" v-on:click="selected_appt = a.appointment_id">
+                                        Provide Details
+                                    </button>
+                                    
+                                    <!-- Modal  -->
+                                    <OngoingAppointmentModal 
+                                    :appointmentID="a.appointment_id"
+                                    @treatment="giveTreatmentDetails" />
+
                                     <div class = "d-flex gap-2 mt-2">
-                                        <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">Cancel</button>
-                                        <button class = "btn btn-outline-primary">Reschedule</button>
+                                        <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">
+                                            Cancel
+                                        </button>
+
+                                        <button class = "btn btn-outline-primary">
+                                            Reschedule
+                                        </button>
                                     </div>
+                                </div>
+
+                                <div v-if = "a.status == 'Completed'">
+                                    <RouterLink :to='`/doctor/appointment/${a.appointment_id}`'>
+                                        <button class = "btn btn-outline-secondary">
+                                            View Details
+                                        </button>
+                                    </RouterLink>
                                 </div>
                             </div>
                         </div>
@@ -146,13 +106,16 @@
             </div>
         </div>
     </div>
+
 </template>
 
 <script>
     import { requestAPI } from '../../../utils/api';
     import { useUserStore } from '@/stores/userStore';
 
+
     import DoctorProfileUpdateModal from './DoctorProfileUpdateModal.vue';
+    import OngoingAppointmentModal from './OngoingAppointmentModal.vue';
 
     export default {
         name: "DoctorProfile",
@@ -162,17 +125,12 @@
                 doctor: null,
                 errorMessage: "",
                 collapseProfile: true,
-                user_name: null,
-                password: null,
-                name: null,
-                dob: null,
-                contact_number: null,
-                email: null, 
-                description: null
+                selected_appt: null
             }
         },
         components: {
-            DoctorProfileUpdateModal
+            DoctorProfileUpdateModal,
+            OngoingAppointmentModal
         },
         methods: {
             async getDoctor() {
@@ -194,24 +152,39 @@
                     this.$emit("error", error.message)
                 }
             },
-            async updateDoctorProfile() {
+            async updateDoctorProfile(data) {
                 try{
-                    console.log("I am working")
                     const doctorID = this.store.user.doctor_id;
-                    const data = {
-                        user_name: this.doctor.doctor_user.user_name,
-                        password: this.doctor.doctor_user.password,
-                        name: this.doctor.name,
-                        dob: this.doctor.dob,
-                        contact_number: this.doctor.doctor_user.contact_number,
-                        email: this.doctor.doctor_user.email,
-                        description: this.doctor.description
-                    }
                     const update_doctor = await requestAPI('PATCH', data, `/doctor/${doctorID}`)
+                    if (update_doctor) {
+                        // Refresh doctor data
+                        this.getDoctor()
+                    } 
+                    // close modal
+                    const modalEl = document.getElementById('update-doctor-profile-modal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide()
                 }
                 catch(error) {
                     this.$emit('error', error.message)
                 }
+            },
+            async giveTreatmentDetails(data) {
+                const appointmentID = this.selected_appt;
+                try{
+                    const give_details = await requestAPI("POST", data, `/treatment/${appointmentID}`)
+                    if (give_details) {
+                        // Refresh doctor data
+                        this.getDoctor()
+                        this.selected_appt = null
+                    } 
+                    // close modal
+                    const modalEl = document.getElementById(`ongoing-appt-modal-${appointmentID}`);
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    console.log(modal)
+                    modal.hide()
+                }
+                catch(error) {}
             }
         },
         mounted() {

@@ -2,7 +2,6 @@
     <div class="container d-flex align-items-center justify-content-center flex-grow-1 min-vh-90 min-vw-100">
         <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
 
-        <!-- {{ appointment }} -->
         <div v-if="appointment" class = "container">
             <div class = "col">
                 <div class="nav nav-tab me-3 my-auto d-flex align-items-center justify-content-center" id="v-tab-tab" role="tablist" aria-orientation="vertical">
@@ -40,7 +39,14 @@
                         <div class = 'col-9 p-3'>
                             <div class = "d-flex justify-content-between">
                                 <p><strong>Date: </strong>{{ appointment.date }}</p>
-                                <button v-if="appointment.status == 'Completed'" class = "btn btn-outline-primary">Update Details</button>
+                                <button v-if="appointment.status == 'Completed'" class = "btn btn-outline-primary" data-bs-toggle = "modal" data-bs-target = "#update-treatment-modal">
+                                    Update Details
+                                </button>
+
+                                <!-- modal  -->
+                                <UpdateTreatmentModal 
+                                :appointment = "appointment"
+                                @update-treatment = "updateTreatmentDetails"/>
                             </div>
                             <p><strong>Time: </strong>{{ appointment.start_time }} - {{ appointment.end_time }}</p>
 
@@ -126,6 +132,8 @@
     import errorToast from '@/components/errorToast.vue';
     import { requestAPI } from '../../../utils/api';
 
+    import UpdateTreatmentModal from '@/components/DoctorDashComp/UpdateTreatmentModal.vue';
+
     export default {
         name: "DoctorDashViewAppointment",
         data() {
@@ -136,7 +144,8 @@
             }
         },
         components: {
-            errorToast
+            errorToast,
+            UpdateTreatmentModal
         },
         methods: {
             async get_appointment() {
@@ -145,7 +154,6 @@
                     const display_appointment = await requestAPI("GET", null, `/appointment/${apptID}?all_appointments=true`)
                     this.appointment = display_appointment
                     this.patientPfp = display_appointment.app_patient.pfp
-                    console.log(this.patientPfp)
                 }
                 catch(error) {
                     this.errorHandler(error.message)
@@ -153,6 +161,16 @@
             },
             errorHandler(message) {
                 this.errorMessage = message
+            },
+            async updateTreatmentDetails(data) {
+                try {
+                    console.log(data)
+                    const apptID = this.$route.params.aid;
+                    const update_appointment = await requestAPI("PATCH", data, `/treatment/${apptID}`)
+                }
+                catch(error) {
+                    this.errorHandler(error.message)
+                }
             }
         },
         mounted() {

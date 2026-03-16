@@ -188,7 +188,6 @@ class DoctorResources(Resource):
                 return {"message": "Doctor does not exist"}, 404
 
             data = request.get_json()
-            print(data.keys())
             for key in data:
                 # check if DOB is updated
                 if key == 'dob' and data[key]:
@@ -199,17 +198,12 @@ class DoctorResources(Resource):
                     setattr(doctor, key, dob)
                 
                 # setting the user table related enteries manually
-                elif key == "user_name":
-                    doctor.doctor_user.user_name = data[key]
-
-                elif key == "contact_number":
-                    doctor.doctor_user.contact_number = data[key]
-
-                elif key == "email":
-                    doctor.doctor_user.email = data[key]
+                elif key in ['user_name', 'contact_number', 'email']:
+                        setattr(doctor.doctor_user, key, data[key])
 
                 elif key == "password":
-                    doctor.doctor_user.user_password = hash_password(data[key])
+                    if data[key].strip() != "":
+                        doctor.doctor_user.user_password = hash_password(data[key])
 
                 # check if the doctor is blacklisted
                 # only doctor can blacklist
@@ -347,3 +341,5 @@ class DoctorAppointments(Resource):
             return appointments, 200
         else:
             return {"message": "You are not authorized"}, 403
+        
+

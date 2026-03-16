@@ -68,12 +68,12 @@
 </script>
 
 <style scoped>
-.hover-shadow {
-    transition: all 0.2s ease;
-}
+    .hover-shadow {
+        transition: all 0.2s ease;
+    }
 
-.hover-shadow:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175)!important;
-}    
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175)!important;
+    }    
 </style>

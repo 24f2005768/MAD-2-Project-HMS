@@ -10,8 +10,13 @@ from datetime import date
 get_parser = reqparse.RequestParser()
 get_parser.add_argument("all_appointments", type = str, location = "args")
 
+# parser for POST requests
 parser = reqparse.RequestParser()
-parser.add_argument("date", type = date)
+
+parser.add_argument("diagnosis", type = str)
+parser.add_argument("notes", type = str)
+parser.add_argument("prescription", type = str)
+parser.add_argument("treatment", type = str)
 
 # get the particular 15-15 minutes slots for this particular doctor and selected shift
 class SelectShift(Resource):
@@ -93,3 +98,36 @@ class CancelAppointment(Resource):
             doctor = db.get_or_404(Doctor, doctor_id)
             appointment.status = f"Cancelled by Dr. {doctor.name}"
         db.session.commit()
+
+class TreatmentResources(Resource):
+    @auth_required("token")
+    def post(self, id):
+        appointment = db.get_or_404(Appointment, id)
+        data = request.get_json()
+
+        diagnosis = data["diagnosis"]
+        notes = data["notes"]
+        prescription = data["prescription"]
+        tests = data["tests"]
+
+        appointment.status = "Completed"
+
+        appointment.app_t = Treatment(diagnosis = diagnosis, notes = notes, prescription = prescription, tests = tests)
+        db.session.commit()
+        return 201
+    
+    @auth_required("token")
+    def patch(self, id):
+        appointment = db.get_or_404(Appointment, id)
+        data = request.get_json()
+        print(data)
+        diagnosis = data["diagnosis"]
+        notes = data["notes"]
+        prescription = data["prescription"]
+        tests = data["tests"]
+
+        appointment.status = "Completed"
+
+        appointment.app_t = Treatment(diagnosis = diagnosis, notes = notes, prescription = prescription, tests = tests)
+        db.session.commit()
+        return 200

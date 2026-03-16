@@ -13,6 +13,7 @@ import search from '@/pages/AdminDash/search.vue'
 import DoctorDashboard from '@/pages/DoctorDashboard.vue'
 import DoctorDashViewPatient from '@/pages/DoctorDash/DoctorDashViewPatient.vue'
 import DoctorDashViewAppointment from '@/pages/DoctorDash/DoctorDashViewAppointment.vue'
+import doctorSearch from '@/pages/DoctorDash/doctorSearch.vue'
 
 import PatientDashboard from '@/pages/PatientDashboard.vue'
 import TestPage from '@/pages/TestPage.vue'
@@ -33,6 +34,7 @@ const router = createRouter({
     {path: '/doctor', component: DoctorDashboard},
     {path: '/doctor/patient/:pid', component: DoctorDashViewPatient},
     {path: '/doctor/appointment/:aid', component: DoctorDashViewAppointment},
+    {path: '/doctor/search/:query', component: doctorSearch},
 
     {path: '/patient', component: PatientDashboard},
     {path: '/test', component: TestPage}
