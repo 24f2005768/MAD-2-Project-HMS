@@ -137,6 +137,7 @@ class Shift(db.Model):
 
     # manyToMany relationship with Doctor
     shift_doctor = db.relationship('Doctor', secondary = doctor_availability, back_populates = 'doctor_shift')
+    shifts_slots = db.relationship('Slots', back_populates = 'slots_shifts')
     
 # Main table to store appointments of patients
 class Appointment(db.Model):
@@ -176,15 +177,16 @@ class Slots(db.Model):
     date = db.Column(db.Date)
     start_time = db.Column(db.DateTime)
     end_time = db.Column(db.DateTime)
-    shift_id = db.Column(db.Integer)
 
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.doctor_id'))
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.patient_id'))
+    shift_id = db.Column(db.Integer, db.ForeignKey('shift.id'))
 
     # One (patient or doctor) can have multiple entries
     slots_doctor = db.relationship('Doctor', back_populates = 'doctor_slots')
     slots_patient = db.relationship('Patient', back_populates = 'patient_slots')
     slots_app = db.relationship('Appointment', back_populates = 'app_slots', uselist = False)
+    slots_shifts = db.relationship('Shift', back_populates = 'shifts_slots')
 
 class ProfilePictures(db.Model):
     __tablename__ = 'profile_pictures'

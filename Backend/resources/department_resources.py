@@ -54,11 +54,20 @@ class DepartmentResources(Resource):
         dept_data["upcoming_appointment"] = []
 
         for doctor in dept.doctors:
-            past_apt = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id, Appointment.date < date.today()).all()
+            # this doctor's past appointments
+            if current_user.has_role("Patient"):
+                patient = db.get_or_404(Patient, current_user.user_patient.patient_id)
+                past_apt = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id, Appointment.patient_id == patient.patient_id, Appointment.date < date.today()).all()
+            else:
+                past_apt = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id, Appointment.date < date.today()).all()
             dept_data['past_appointment'] += marshal(past_apt, appointment_fields)
 
             # this doctor's upcoming appointments
-            upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id, Appointment.date >= date.today()).all()
+            if current_user.has_role("Patient"):
+                patient = db.get_or_404(Patient, current_user.user_patient.patient_id)
+                upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id, Appointment.patient_id == patient.patient_id,  Appointment.date >= date.today()).all()
+            else:
+                upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id, Appointment.date >= date.today()).all()
             dept_data['upcoming_appointment'] += marshal(upcoming_apt, appointment_fields)
 
         return dept_data, 200

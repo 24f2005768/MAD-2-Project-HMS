@@ -49,7 +49,7 @@ class BookAppointment(Resource):
         return marshal(slot, slot_fields), 200
 
 class AppointmentResources(Resource):
-    # @auth_required("token")
+    @auth_required("token")
     def get(self, appointment_id):
         # base data
         appointment_data = {}
@@ -79,8 +79,21 @@ class AppointmentResources(Resource):
                 # this patient's upcoming appointments with this doctor
                 upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date >= date.today(), Appointment.doctor_id == doctor.doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
                 appointment_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
+            
+            elif current_user.has_role("Patient"):
+                doctor_id = appointment.doctor_id
+                patient_id = current_user.user_patient.patient_id
+                patient = db.get_or_404(Patient, patient_id)
 
-                return appointment_data
+                # this patient's past appointments with this doctor
+                past_apt = Appointment.query.filter(Appointment.patient_id == patient.patient_id, Appointment.date < date.today(), Appointment.doctor_id == doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
+                appointment_data['past_appointment'] = marshal(past_apt, appointment_fields)
+
+                # this patient's upcoming appointments with this doctor
+                upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient.patient_id, Appointment.date >= date.today(), Appointment.doctor_id == doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
+                appointment_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
+
+            return appointment_data
 
 
 class AllAppointmentResources(Resource):
@@ -93,10 +106,16 @@ class CancelAppointment(Resource):
     @auth_required("token")
     def patch(self, appointment_id):
         appointment = db.get_or_404(Appointment, appointment_id)
+
         if current_user.has_role("Doctor"): 
             doctor_id = current_user.user_doctor.doctor_id
             doctor = db.get_or_404(Doctor, doctor_id)
             appointment.status = f"Cancelled by Dr. {doctor.name}"
+        
+        elif current_user.has_role("Patient"):
+            patient_id = current_user.user_patient.patient_id
+            patient = db.get_or_404(Patient, patient_id)
+            appointment.status = f"Cancelled by {patient.name}"
         db.session.commit()
 
 class TreatmentResources(Resource):

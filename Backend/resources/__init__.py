@@ -6,7 +6,7 @@ from resources.doctor_resources import DoctorResources, AllDoctorResources, Avai
 from resources.patient_resources import PatientResources, AllPatientResources
 from resources.appoinmtemt_resources import AppointmentResources, AllAppointmentResources, SelectShift, BookAppointment, CancelAppointment, TreatmentResources
 from resources.department_resources import DepartmentResources, AllDepartmentResources
-from resources.search_resources import AdminSearch, DoctorSearch
+from resources.search_resources import AdminSearch, DoctorSearch, PatientSearch
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 api = Api(api_bp)
@@ -40,3 +40,4 @@ api.add_resource(TreatmentResources, '/treatment/<int:id>')
 # Search Routes
 api.add_resource(AdminSearch, "/admin/search")
 api.add_resource(DoctorSearch, "/doctor/search")
+api.add_resource(PatientSearch, "/patient/search")

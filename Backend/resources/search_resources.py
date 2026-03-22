@@ -57,14 +57,13 @@ class AdminSearch(Resource):
         return results, 200
     
 class DoctorSearch(Resource):
-    # @auth_required("token")
-    # @roles_required("Doctor")
+    @auth_required("token")
+    @roles_required("Doctor")
     def get(self):
         args = get_parser.parse_args()
         search_query = args.get("query")
 
-        # doctor = db.get_or_404(Doctor, current_user.user_doctor.doctor_id)
-        doctor = db.get_or_404(Doctor, 2)
+        doctor = db.get_or_404(Doctor, current_user.user_doctor.doctor_id)
         results = {"patients": {"name": [], "contact_number": [], "email": []}, 
                    "doctors": {"name": {}, "contact_number": {}, "email": {}},
                     "departments": {"name": {}}}
@@ -101,7 +100,6 @@ class DoctorSearch(Resource):
             else:
                 p_dict[patient.name]["patient_data"]["last_visit"] = marshal(last_visit, appointment_fields)
 
-        # print(p_dict)
         # filter out patients by {name, CN, email}        
         patient_by_name = Patient.query.join(User).filter(Patient.name.like(f"%{search_query}%")).all()
         for i in patient_by_name:
@@ -127,6 +125,32 @@ class DoctorSearch(Resource):
                 patient["last_visit"] = p_dict[i.name]["patient_data"]["last_visit"]
                 results["patients"]["email"].append(patient)
 
+        # filter out doctors by {name, CN, email}
+        doctor_by_name = Doctor.query.join(User).filter(Doctor.name.like(f"%{search_query}%")).all()
+        results["doctors"]["name"] = marshal(doctor_by_name, doctor_fields)
+
+        doctor_by_contact_number = Doctor.query.join(User).filter(User.contact_number.like(f"%{search_query}%")).all()
+        results["doctors"]["contact_number"] = marshal(doctor_by_contact_number, doctor_fields)
+
+        doctor_by_email = Doctor.query.join(User).filter(User.email.like(f"%{search_query}%")).all()
+        results["doctors"]["email"] = marshal(doctor_by_email, doctor_fields)
+
+        # filter out departments by (name)
+        dept_by_name = Department.query.filter(Department.name.like(f"%{search_query}%")).all()
+        results["departments"]["name"] = marshal(dept_by_name, department_fields)
+
+        return results, 200
+    
+class PatientSearch(Resource):
+    @auth_required("token")
+    @roles_required("Patient")
+    def get(self):
+        args = get_parser.parse_args()
+        search_query = args.get("query")
+
+        results = {"doctors": {"name": {}, "contact_number": {}, "email": {}},
+                    "departments": {"name": {}}}
+        
         # filter out doctors by {name, CN, email}
         doctor_by_name = Doctor.query.join(User).filter(Doctor.name.like(f"%{search_query}%")).all()
         results["doctors"]["name"] = marshal(doctor_by_name, doctor_fields)

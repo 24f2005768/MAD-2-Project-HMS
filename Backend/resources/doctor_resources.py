@@ -76,99 +76,109 @@ class DoctorResources(Resource):
     
     @auth_required("token")
     def get(self, doctor_id):
-        # Check if user has permission to view this doctor
-        # Admins can view any doctor, doctors can only view themselves
-        if current_user.has_role('Admin') or (current_user.has_role('Doctor') and current_user.user_doctor.doctor_id == doctor_id):
-            doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
-            if not doctor:
-                return {"message": "Doctor does not exist"}, 404
 
-            # base data, this will always be sent
-            doctor_data = marshal(doctor, doctor_fields)        
+        doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
+        if not doctor:
+            return {"message": "Doctor does not exist"}, 404
 
-            # flag to see if appointments of this particular doctor is required
-            args = get_parser.parse_args()
-            flag1 = args.get('upcoming_appointment')
-            flag2 = args.get('past_appointment')
-            flag3 = args.get('availability')
-            flag4 = args.get('today_appointment')
-            flag5 = args.get('patients')
+        # base data, this will always be sent
+        doctor_data = marshal(doctor, doctor_fields)        
+
+        # flag to see if appointments of this particular doctor is required
+        args = get_parser.parse_args()
+        flag1 = args.get('upcoming_appointment')
+        flag2 = args.get('past_appointment')
+        flag3 = args.get('availability')
+        flag4 = args.get('today_appointment')
+        flag5 = args.get('patients')
+
+        # getting all patients of this particular doctor
+        # storing the unique patient_id(s) in a set
+        d_appointments = doctor.doctor_app 
+        
+        p_set = set()   
+        for a in d_appointments:
+            if a.patient_id != None:
+                p_set.add(a.app_patient.patient_id)
+        doctor_data["number_of_patients"] = len(p_set)
+
+        if (flag1 == None) and (flag2 == None) and (flag3 == None) and (flag4 == None) and (flag5 == None): 
+            return doctor_data, 200
+
+        # only return base data and patients
+        if (flag1 == None) and (flag2 == None) and (flag3 == None) and (flag4 == None) and (flag5):
+            # this doctor's patients
+            p_dict = {}
+            p_list = []
 
             # getting all patients of this particular doctor
             # storing the unique patient_id(s) in a set
-            d_appointments = doctor.doctor_app 
-            p_set = set()   
-            for a in d_appointments:
-                    p_set.add(a.app_patient.patient_id)
-            doctor_data["number_of_patients"] = len(p_set)
 
-            if (flag1 == None) and (flag2 == None) and (flag3 == None) and (flag4 == None) and (flag5 == None): 
-                return doctor_data, 200
-
-            # only return base data and patients
-            if (flag1 == None) and (flag2 == None) and (flag3 == None) and (flag4 == None) and (flag5):
-                # this doctor's patients
-                p_dict = {}
-                p_list = []
-
-                # getting all patients of this particular doctor
-                # storing the unique patient_id(s) in a set
-
-                # fetching and storing the patient objects in a list
-                for s in p_set:
-                    patient = db.get_or_404(Patient, s)
-                    p_list += [patient]
-                    # making a dictionary for each patient and storing their appointments
-                    p_dict[patient.name] = {}
-                    p_dict[patient.name]["patient_data"] = marshal(patient, patient_fields)
-                    p_dict[patient.name]["patient_data"]["number_of_appointments"] = 0
-                    for a in d_appointments:
-                        if a.patient_id == patient.patient_id:
-                            p_dict[patient.name]["patient_data"]["number_of_appointments"] += 1
-                            p_dict[patient.name][a.appointment_id] = marshal(a, appointment_fields)
-                    
-                    # storing the last visit of this patient
-                    last_visit = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id, Appointment.patient_id == patient.patient_id).order_by(desc(Appointment.date)).first()
-                    p_dict[patient.name]["patient_data"]["last_visit"] = marshal(last_visit, appointment_fields)
-                doctor_data['patients'] = p_dict
-                return doctor_data, 200
-
-            # doctor availability for the coming dates
-            da_list = []
-            da = doctor.doctor_shift
-
-            # making a DateTime object
-            date_today = date.today()
-            time = datetime.min.time()
-            date_today = datetime.combine(date_today, time)
-
-            for a in da:
-                if a.date >= date_today:
-                    da_list += [a]
-            doctor_data['availability'] = marshal(da_list, shift_fields)
-
-            # only return base data and availability 
-            if (flag1 == None) and (flag2 == None) and (flag3):
-                return doctor_data, 200
-            
-            # today's appointments
-            if (flag4):
-                today_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date == date.today()).order_by(Appointment.start_time).all()
-                doctor_data['today_appointment'] = marshal(today_apt, appointment_fields)
-            
-            # flag 2
-            # this doctor's past appointments
-            past_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date < date.today()).all()
-            doctor_data['past_appointment'] = marshal(past_apt, appointment_fields)
-            
-            # flag 1
-            # this doctor's upcoming appointments
-            upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date > date.today()).all()
-            doctor_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
-
+            # fetching and storing the patient objects in a list
+            for s in p_set:
+                patient = db.get_or_404(Patient, s)
+                p_list += [patient]
+                # making a dictionary for each patient and storing their appointments
+                p_dict[patient.name] = {}
+                p_dict[patient.name]["patient_data"] = marshal(patient, patient_fields)
+                p_dict[patient.name]["patient_data"]["number_of_appointments"] = 0
+                for a in d_appointments:
+                    if a.patient_id == patient.patient_id:
+                        p_dict[patient.name]["patient_data"]["number_of_appointments"] += 1
+                        p_dict[patient.name][a.appointment_id] = marshal(a, appointment_fields)
+                
+                # storing the last visit of this patient
+                last_visit = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id, Appointment.patient_id == patient.patient_id).order_by(desc(Appointment.date)).first()
+                p_dict[patient.name]["patient_data"]["last_visit"] = marshal(last_visit, appointment_fields)
+            doctor_data['patients'] = p_dict
             return doctor_data, 200
-        else: 
-            return {"message": "You are not authorized"}, 403
+
+        # doctor availability for the coming dates
+        da_list = []
+        da = doctor.doctor_shift
+
+        # making a DateTime object
+        date_today = date.today()
+        time = datetime.min.time()
+        date_today = datetime.combine(date_today, time)
+
+        for a in da:
+            if a.date >= date_today:
+                da_list += [a]
+        doctor_data['availability'] = marshal(da_list, shift_fields)
+
+        # only return base data and availability 
+        if (flag1 == None) and (flag2 == None) and (flag3):
+            return doctor_data, 200
+        
+        # today's appointments
+        if (flag4):
+            if current_user.has_role("Patient"):
+                patient = db.get_or_404(Patient, current_user.user_patient.patient_id)
+                today_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.patient_id == patient.patient_id, Appointment.date == date.today()).order_by(Appointment.start_time).all()
+            else:
+                today_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date == date.today()).order_by(Appointment.start_time).all()
+            doctor_data['today_appointment'] = marshal(today_apt, appointment_fields)
+        
+        # flag 2
+        # this doctor's past appointments
+        if current_user.has_role("Patient"):
+            patient = db.get_or_404(Patient, current_user.user_patient.patient_id)
+            past_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.patient_id == patient.patient_id, Appointment.date < date.today()).all()
+        else:
+            past_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date < date.today()).all()
+        doctor_data['past_appointment'] = marshal(past_apt, appointment_fields)
+        
+        # flag 1
+        # this doctor's upcoming appointments
+        if current_user.has_role("Patient"):
+            patient = db.get_or_404(Patient, current_user.user_patient.patient_id)
+            upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.patient_id == patient.patient_id, Appointment.date > date.today()).all()
+        else:
+            upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date > date.today()).all()
+        doctor_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
+
+        return doctor_data, 200
         
     @auth_required("token")
     @roles_required("Admin")
@@ -206,7 +216,7 @@ class DoctorResources(Resource):
                         doctor.doctor_user.user_password = hash_password(data[key])
 
                 # check if the doctor is blacklisted
-                # only doctor can blacklist
+                # only admin can blacklist
                 elif key == 'blacklist':
                     if current_user.has_role("Admin"):
                         if doctor.doctor_user.blacklisted == False:

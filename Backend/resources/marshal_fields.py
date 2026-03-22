@@ -26,15 +26,6 @@ user_fields = {
     "user_patient": fields.Nested({"patient_id": fields.Integer}),
 }
 
-department_fields = {
-    "department_id": fields.Integer,
-    "name": fields.String,
-    "description": fields.String,
-    "status": fields.String,
-    "doctors": fields.Nested({'name': fields.String, "description": fields.String}),
-    "pfp": fields.String
-}
-
 doctor_fields = {
     "doctor_id": fields.Integer,
     "name": fields.String,
@@ -47,8 +38,21 @@ doctor_fields = {
         'user_name': fields.String,
         'contact_number': fields.String, 
         'email': fields.String,
-        'blacklisted': fields.Boolean}),
-    "dept": fields.Nested({"name": fields.String})
+        'blacklisted': fields.Boolean
+        }),
+    "dept": fields.Nested({
+        "name": fields.String,
+        "department_id": fields.Integer
+        })
+}
+
+department_fields = {
+    "department_id": fields.Integer,
+    "name": fields.String,
+    "description": fields.String,
+    "status": fields.String,
+    "doctors": fields.Nested(doctor_fields),
+    "pfp": fields.String
 }
 
 patient_fields = {
@@ -61,7 +65,9 @@ patient_fields = {
     "status": fields.String,
     "pfp": fields.String,
     "get_age": fields.String(attribute=lambda patient:patient.get_age()),
-    "patient_user": fields.Nested({'contact_number': fields.String, 'email': fields.String})
+    "patient_user": fields.Nested({'user_name': fields.String
+                                   ,'contact_number': fields.String, 
+                                   'email': fields.String})
 }
 
 treatment_fields = {
@@ -97,4 +103,5 @@ slot_fields = {
     "end_time": TimeField,
     "slots_doctor": fields.Nested({"name": fields.String}),
     "slots_patient": fields.Nested({"name": fields.String}),
+    "slots_shifts": fields.Nested(shift_fields)
 }

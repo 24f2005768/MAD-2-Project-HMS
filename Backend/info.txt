@@ -13,3 +13,9 @@ date_today = datetime.combine(date_today, time)
 # Check if user has permission to view this doctor
 # Admins can view any doctor, doctors can only view themselves
 if current_user.has_role('Admin') or (current_user.has_role('Doctor') and current_user.user_doctor.doctor_id == doctor_id):
+
+# Start Celery Worker
+celery -A app:celery_app worker --loglevel=info
+
+# virtual env
+source /home/kriti/Desktop/VSCode/MAD-2-Project/MAD-2-Project-HMS/env/bin/activate

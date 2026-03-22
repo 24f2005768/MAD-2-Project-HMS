@@ -1,3 +1,89 @@
 <template>
-    <h3>Patient Dashboard</h3>
+    <div class="container d-flex align-items-start flex-grow-1 min-vh-90 min-vw-100">
+        <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
+
+        <div class = 'container'>
+            <div class = 'col'>
+                <div class="nav nav-tab me-3 my-auto d-flex align-items-center justify-content-center" id="v-tab-tab" role="tablist">
+                    <button class="nav-link active border-bottom" @click="tabshown = 'home'" id="v-tab-home-tab" data-bs-toggle="pill" data-bs-target="#v-tab-home" type="button" role="tab">
+                        Home
+                    </button>
+
+                    <button class="nav-link border-bottom" @click="tabshown = 'stats'" id="v-tab-stats-tab" data-bs-toggle="pill" data-bs-target="#v-tab-stats" type="button" role="tab">
+                        Stats
+                    </button>
+
+                    <button class="nav-link border-bottom" @click="tabshown = 'doctors'" id="v-tab-doctors-tab" data-bs-toggle="pill" data-bs-target="#v-tab-doctors" type="button" role="tab">
+                        Doctors
+                    </button>
+
+                    <button class="nav-link border-bottom" @click="tabshown = 'appts'" id="v-tab-appt-tab" data-bs-toggle="pill" data-bs-target="#v-tab-appt" type="button" role="tab">
+                        Appointments
+                    </button>
+                </div>                
+            </div>
+
+            <div class = 'col'>
+
+                <!-- Conditional Rendering -->
+                <div class="tab-content d-flex" id="v-tab-tabContent" style="margin: 30px;">
+                    
+                    <!-- Home  -->
+                    <div class="tab-pane fade show active w-100" id="v-tab-home" role="tabpanel">
+                        <PatientProfile @error = "errorHandler"/>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="tab-pane fade w-100" id="v-tab-stats" role="tabpanel">
+                        Second v-show="tabshown == 'stats'" 
+                    </div>
+
+                    <!-- Patients  -->
+                    <div class="tab-pane fade w-100" id="v-tab-doctors" role="tabpanel">
+                        <PatientDashDoctors @error = "errorHandler"/>
+                    </div>
+
+                    <!-- Appointments  -->
+                    <div class="tab-pane fade w-100" id="v-tab-appt" role="tabpanel">
+                        <PatientDashAppointments @error = "errorHandler"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
+
+<script>
+    import errorToast from '@/components/errorToast.vue';
+    
+    import PatientProfile from '@/components/PatientDashComp/PatientProfile.vue';
+    import PatientDashDoctors from '@/components/PatientDashComp/PatientDashDoctors.vue';
+    import PatientDashAppointments from '@/components/PatientDashComp/PatientDashAppointments.vue';
+    
+    export default {
+        name: 'PatientDash',
+        data() {
+            return {
+                errorMessage: "",
+                tabshown: 'home'
+            }
+        },
+        components: {
+            errorToast,
+            PatientProfile,
+            PatientDashDoctors,
+            PatientDashAppointments
+        },
+        methods: {
+            errorHandler(error) {
+                this.errorMessage = error.message
+            }
+        }
+    }
+</script>
+
+<style scoped>
+    .nav-tab .nav-link.active {
+        border-bottom: 2px solid orangered !important;
+    }
+</style>

@@ -13,9 +13,14 @@ import search from '@/pages/AdminDash/search.vue'
 import DoctorDashboard from '@/pages/DoctorDashboard.vue'
 import DoctorDashViewPatient from '@/pages/DoctorDash/DoctorDashViewPatient.vue'
 import DoctorDashViewAppointment from '@/pages/DoctorDash/DoctorDashViewAppointment.vue'
-import doctorSearch from '@/pages/DoctorDash/doctorSearch.vue'
+import DoctorSearch from '@/pages/DoctorDash/DoctorSearch.vue'
 
 import PatientDashboard from '@/pages/PatientDashboard.vue'
+import PatientDashViewDoctor from '@/pages/PatientDash/PatientDashViewDoctor.vue'
+import PatientDashViewDepartment from '@/pages/PatientDash/PatientDashViewDepartment.vue'
+import PatientDashViewAppointment from '@/pages/PatientDash/PatientDashViewAppointment.vue'
+import PatientSearch from '@/pages/PatientDash/PatientSearch.vue'
+
 import TestPage from '@/pages/TestPage.vue'
 
 const router = createRouter({
@@ -34,9 +39,14 @@ const router = createRouter({
     {path: '/doctor', component: DoctorDashboard},
     {path: '/doctor/patient/:pid', component: DoctorDashViewPatient},
     {path: '/doctor/appointment/:aid', component: DoctorDashViewAppointment},
-    {path: '/doctor/search/:query', component: doctorSearch},
+    {path: '/doctor/search/:query', component: DoctorSearch, name: "doctorSearch"},
 
     {path: '/patient', component: PatientDashboard},
+    {path: '/patient/doctor/:did', component: PatientDashViewDoctor},
+    {path: '/patient/dept/:deptId', component: PatientDashViewDepartment},
+    {path: '/patient/appointment/:aid', component: PatientDashViewAppointment},
+    {path: '/patient/search/:query', component: PatientSearch, name: "patientSearch"},
+
     {path: '/test', component: TestPage}
   ],
 })
