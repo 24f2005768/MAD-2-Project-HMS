@@ -84,7 +84,6 @@
 
 <style scoped>
     .nav-tab .nav-link.active {
-        /* background-color: rgba(0, 0, 0, 0.175) !important; */
         border-bottom: 2px solid orangered !important;
     }
 </style>

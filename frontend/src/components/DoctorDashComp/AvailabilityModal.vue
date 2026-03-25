@@ -16,16 +16,14 @@
                             <p class = "mb-1"><strong>{{ date }}</strong></p>
                         </div>
                         <div class = "d-flex justify-content-between mb-2">
-                            <div v-for="slot in availabilityDict[date]" :key = "slot" v-on:click="slot.updated_availability == 1 ? slot.updated_availability = 0 : slot.updated_availability = 1" class="card">
+                            <div v-for="slot in availabilityDict[date]" :key = "slot" class="card">
                                 <!-- if doctor has given previous availability  -->
-                                <div class="card-body available" v-if="slot.updated_availability == 1">
-                                    <p class="card-title mb-0">{{ slot.name }}: {{ slot.start_time }} - {{ slot.end_time }}</p>
-                                </div>
+                                <!-- <div class="available" v-if="slot.updated_availability == 1 && slot.allow_cancellation == 1">
+                                </div> -->
+                                <button v-if="slot.allow_cancellation == 0" :class = "{'btn btn-outline-secondary disabled': true, 'available': slot.updated_availability == 1}">{{ slot.name }}: {{ slot.start_time }} - {{ slot.end_time }}</button>
+                                <button v-else @click="slot.updated_availability = slot.updated_availability == 1 ? 0 : 1" :class = "{'btn btn-outline-secondary': true, 'available': slot.updated_availability == 1, 'active': slot.updated_availability == 1}">{{ slot.name }}: {{ slot.start_time }} - {{ slot.end_time }}</button>
+                                <!-- <button v-if="slot.allow_cancellation == 0" :class = "{'btn btn-outline-secondary': true, 'available': slot.updated_availability == 1, 'active': slot.updated_availability == 1 && slot.allow_cancellation == 1}">{{ slot.name }}: {{ slot.start_time }} - {{ slot.end_time }}</button> -->
 
-                                <!-- else  -->
-                                <div class="card-body unavailable" v-else>
-                                    <p class="card-title mb-0">{{ slot.name }}: {{ slot.start_time }} - {{ slot.end_time }}</p>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -91,6 +89,15 @@
 
 <style>
     .available {
-        background-color: aqua;
+        background-color: aqua !important;
+        color: black !important;
+    }
+
+    .disable-cancel {
+        background-color: blueviolet !important;
+    }
+    .active {
     }
 </style>
+
+

@@ -16,6 +16,13 @@ if current_user.has_role('Admin') or (current_user.has_role('Doctor') and curren
 
 # Start Celery Worker
 celery -A app:celery_app worker --loglevel=info
+celery -A app:celery_app beat --loglevel=info
+
+# run together
+celery -l INFO -A app:celery_app worker --beat
 
 # virtual env
 source /home/kriti/Desktop/VSCode/MAD-2-Project/MAD-2-Project-HMS/env/bin/activate
+
+# run mailpit
+mailpit

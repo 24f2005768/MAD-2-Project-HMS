@@ -3,7 +3,6 @@
         <div v-if="departments">
             <h4 class = "ms-5">Doctors</h4>
         </div>
-
         
         <div v-if="departments" class="col w-100">
             <div class = "d-flex justify-content-between w-75 mx-auto">
@@ -12,15 +11,12 @@
                 </div>
             </div>
             <div v-for="dept in departments" class = "d-flex flex-column">
-                <!-- {{ dept }} -->
-                <!-- <h4>{{ dept.name }} ({{ dept.doctors.length }})</h4> -->
-
-                <div v-if="selectedDept == dept.department_id" class = "">
+                 <div v-if="selectedDept == dept.department_id" class = "">
                     <div v-if="dept.doctors.length == 0" class = "w-100 mt-2 d-flex justify-content-center align-items-center" style="height: 50vh;">
                         <p>No doctors to show</p>
                     </div>
                     <div v-else v-for="doctor in dept.doctors" class = "px-5 m-3">
-                        <!-- {{ doctor }} -->
+                        
                         <!-- card for each doctor  -->
                         <div class = "card d-flex flex-row w-100 h-auto shadow-sm hover-shadow m-2" v-if="selectedDept == doctor.dept.department_id">
                             <!-- photo container  -->

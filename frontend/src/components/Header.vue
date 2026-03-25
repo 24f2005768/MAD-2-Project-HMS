@@ -16,6 +16,11 @@
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </button>
             </div>
+
+            <div class = 'd-flex justify-content-center align-items-center gap-2' v-else>
+                <div><p>Login /</p></div>
+                <div><p>Register</p></div>
+            </div>
         </div>
     </nav>
 </template>

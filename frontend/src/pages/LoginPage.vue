@@ -1,24 +1,33 @@
 <template>       
-    <div class="container d-flex align-items-center justify-content-center flex-grow-1 min-vh-90 min-vw-100">
+    <div class="container d-flex flex-column align-items-center justify-content-center flex-grow-1 min-vw-100 gap-3" style="min-height: 90vh;">
         <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
+
+        <div class = "w-100 d-flex justify-content-center">
+            <h3 class>Login</h3>
+        </div>
+
         <div class = 'card row d-flex flex-column justify-content-center align-items-center gap-2 w-50'>
             <form @submit.prevent="loginUser">
-            <div class="mb-3">
-                <label for="user_name" class="form-label">User Name</label>
-                <input type="text" class="form-control" 
-                id="user_name" v-model ="user_name">
-            </div>
+                <div class="mb-3 mt-3">
+                    <label for="user_name" class="form-label">User Name</label>
+                    <input type="text" class="form-control" 
+                    id="user_name" v-model ="user_name">
+                </div>
 
-            <div class="mb-3">
-                <label for="user_password" class="form-label">User Password</label>
-                <input type="password" class="form-control" 
-                id="user_password" v-model = "user_password">
-            </div>
-            
-            <div>
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
+                <div class="mb-3 mt-3">
+                    <label for="user_password" class="form-label">User Password</label>
+                    <input type="password" class="form-control" 
+                    id="user_password" v-model = "user_password">
+                </div>
+                
+                <div class = "w-100 d-flex justify-content-center mb-3">
+                    <button type="submit" class="btn btn-outline-primary">Submit</button>
+                </div>
             </form>
+        </div>
+
+        <div class = "w-100 d-flex justify-content-center">
+            <p>Not a member? <RouterLink to="/register">Sign in</RouterLink> instead</p>
         </div>
     </div>
 </template>
@@ -49,7 +58,6 @@ export default {
                     'user_password': this.user_password
                 })
                 
-                // console.log("user", this.store.user)
                 if (this.store.role == 'Admin') {
                     this.$router.push('/admin')
                 }

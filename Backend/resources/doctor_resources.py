@@ -6,6 +6,7 @@ from flask_restful import Resource, marshal, reqparse
 from sqlalchemy import desc
 
 from models import *
+from caching_config import cache
 from .marshal_fields import doctor_fields, appointment_fields, shift_fields, patient_fields
 
 # parser for GET requests (Doctor)
@@ -19,17 +20,18 @@ get_parser.add_argument('patients', type = str, location = 'args')
 # parser for POST requests
 parser = reqparse.RequestParser()
 
-parser.add_argument("user_name", type = str)
-parser.add_argument("user_password", type = str)
-parser.add_argument("email", type = str)
+parser.add_argument("user_name", type = str, required = True)
+parser.add_argument("user_password", type = str, required = True)
+parser.add_argument("email", type = str, required = True)
 parser.add_argument("contact_number", type = str)
 
 parser.add_argument("doctor_id", type = int)
-parser.add_argument("name", type = str)
+parser.add_argument("name", type = str, required = True)
 parser.add_argument("dob", type = date)
 parser.add_argument("description", type = str)
 parser.add_argument("gender", type = str)
 parser.add_argument("status", type = str)
+parser.add_argument("department", type = int, required = True)
 
 class DoctorResources(Resource):
     @auth_required("token")
@@ -48,6 +50,7 @@ class DoctorResources(Resource):
         dob = args.get("dob")
         description = args.get("description")
         gender = args.get("gender")
+        department = args.get("department")
 
         datastore = current_app.datastore 
         user = datastore.find_user(user_name = user_name)
@@ -56,14 +59,29 @@ class DoctorResources(Resource):
             return {"message": "Doctor already exist"}, 400
 
         # add as user
-        user = datastore.create_user(user_name = user_name, user_password = hash_password(user_password), 
-                          contact_number = contact_number, email = email)
-        datastore.add_role_to_user(user, 'Doctor')
-        db.session.add(user)
+        if (user_name != "" and user_password != "" and email != ""):
+            user = datastore.create_user(user_name = user_name, user_password = hash_password(user_password), 
+                            contact_number = contact_number, email = email)
+            datastore.add_role_to_user(user, 'Doctor')
+            db.session.add(user)
+        else:
+            return {"message": "User name, password and email are required"}, 400
 
         # add as doctor
-        doctor = Doctor(name = name, dob = dob, description = description, gender = gender)
-        user.user_doctor = doctor
+        if dob:
+            dob = datetime.strptime(dob, '%Y-%m-%d')
+
+        if description == "":
+            description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
+        if (name != ""):
+            doctor = Doctor(name = name, dob = dob, description = description, gender = gender)
+            user.user_doctor = doctor
+        else:
+            return {"message": "Name is required"}, 400        
+
+        if department != 0:
+            dept = Department.query.filter(Department.department_id == department).first()
+            doctor.department_id = dept.department_id
 
         # add pfp
         m_pfp = db.get_or_404(ProfilePictures, 6)
@@ -72,9 +90,11 @@ class DoctorResources(Resource):
         
         db.session.commit()
 
+        cache.delete_memoized(AllDoctorResources.get)
         return marshal(doctor, doctor_fields), 201
     
     @auth_required("token")
+    @cache.memoize()
     def get(self, doctor_id):
 
         doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
@@ -242,6 +262,7 @@ class DoctorResources(Resource):
         
 class AllDoctorResources(Resource):
     @auth_required("token")
+    @cache.memoize(args_to_ignore=["self"])
     def get(self):
         args = get_parser.parse_args()
         flag = args.get('limit')
@@ -251,12 +272,20 @@ class AllDoctorResources(Resource):
     
 class Availability(Resource):
     @auth_required("token")
+    @cache.memoize()
     def get(self, doctor_id):
         doctor = db.get_or_404(Doctor, doctor_id)
         doctor_shift = doctor.doctor_shift
+        
+        # getting today's date and making it a datetime object
+        date_today = date.today()
+        time = datetime.min.time()
+        date_today = datetime.combine(date_today, time)
 
-        all_shifts = Shift.query.all()
-        next_week_dates = [(date.today() + timedelta(days = i)) for i in range(1,8)]
+        present_time = datetime.now()
+
+        all_shifts = Shift.query.filter(Shift.date >= date_today).all()
+        next_week_dates = [(date.today() + timedelta(days = i)) for i in range(8)]
 
         shifts = {}
         for d in next_week_dates:
@@ -266,6 +295,12 @@ class Availability(Resource):
 
         for d in shifts:
             for s in all_shifts:
+                s_marshaled = marshal(s, shift_fields)
+                if s.start_time > present_time:
+                    s_marshaled["allow_cancellation"] = 1
+                else:
+                    s_marshaled["allow_cancellation"] = 0
+
                 # convert back into datetime object to compare
                 d_dt = datetime.strptime(d, '%d-%m-%Y')
 
@@ -273,7 +308,7 @@ class Availability(Resource):
                 if s.date == d_dt:
                     if s in doctor_shift:
                         d_str = datetime.strftime(d_dt, '%d-%m-%Y')
-                        s_marshaled = marshal(s, shift_fields)
+                        # s_marshaled = marshal(s, shift_fields)
                         # adding if the doctor is available for this shift
                         # when updating availability, if updated_availability changes then update availability
                         # we are not working on original_availability, it is only for checking differences if the availability is updated
@@ -282,11 +317,12 @@ class Availability(Resource):
                         shifts[d_str] += [s_marshaled]
                     else:
                         d_str = datetime.strftime(d_dt, '%d-%m-%Y')
-                        s_marshaled = marshal(s, shift_fields)
+                        # s_marshaled = marshal(s, shift_fields)
                         # adding if the doctor is not available for this shift
                         s_marshaled["original_availability"] = 0
                         s_marshaled["updated_availability"] = 0
                         shifts[d_str] += [s_marshaled]
+        print(shifts)
         return shifts, 200
     
     @auth_required("token")

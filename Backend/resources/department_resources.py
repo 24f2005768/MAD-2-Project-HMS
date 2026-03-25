@@ -4,6 +4,7 @@ from datetime import date
 from flask_security import auth_required, roles_required, current_user
 
 from models import *
+from caching_config import cache
 from .marshal_fields import department_fields, appointment_fields
 
 # parser for GET requests
@@ -16,6 +17,18 @@ parser = reqparse.RequestParser()
 parser.add_argument("name", type = str, required = True)
 parser.add_argument("description", type = str)
 
+def make_dept_cache_key(self, dept_id):
+    # Get user role
+    user_role = current_user.roles[0].name
+    
+    # Get query parameters
+    args = get_parser.parse_args()
+    flag1 = args.get('upcoming_appointment')
+    flag2 = args.get('past_appointment')
+    
+    # Create cache key
+    return f"dept_{dept_id}_user_{current_user.user_id}_{user_role}_upcoming_{flag1}_past_{flag2}"
+
 class DepartmentResources(Resource):
     @auth_required("token")
     @roles_required("Admin")
@@ -26,14 +39,22 @@ class DepartmentResources(Resource):
 
         dept = Department.query.filter(Department.name == dept_name).first()
         if dept:
-            return {"message": "Department does not exist"}, 404
+            return {"message": "Department already exists"}, 404
+        if description == "":
+            description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
         dept = Department(name = dept_name, description = description)
         db.session.add(dept)
         db.session.commit()
+
+        # Clear cache for all departments
+        cache.delete_memoized(AllDepartmentResources.get) 
+
         return marshal(dept, department_fields), 200
     
     @auth_required("token")
+    @cache.cached(make_cache_key = make_dept_cache_key)
     def get(self, dept_id):
+        print(f"Caching department {dept_id} for user {current_user.user_id}")
         dept = Department.query.filter(Department.department_id == dept_id).first()
         if not dept:
             return {"message": "Department does not exist"}, 404
@@ -79,7 +100,12 @@ class DepartmentResources(Resource):
         if dept:
             db.session.delete(dept)
             db.session.commit()
-            return 200
+
+            # Clear cache for this specific department and all departments list
+            cache.delete_memoized(DepartmentResources.get, dept_id)
+            cache.delete_memoized(AllDepartmentResources.get)  
+                      
+            return {"message": "Department deleted successfully"}, 200
         return {"message": "Department does not exist"}, 404
     
     @auth_required("token")
@@ -92,11 +118,18 @@ class DepartmentResources(Resource):
         data = request.get_json()
         for key in data:
             setattr(dept, key, data[key])
-        db.session.commit()  
+        db.session.commit() 
+
+        # Clear cache for this department and all departments list
+        cache.delete_memoized(DepartmentResources.get, dept_id)
+        cache.delete_memoized(AllDepartmentResources.get) 
+
         return marshal(dept, department_fields), 200      
 
 class AllDepartmentResources(Resource):
     @auth_required("token")
+    @cache.memoize(args_to_ignore=["self"])
     def get(self):
+        print("All departments cached")
         all_dept = Department.query.all()
         return marshal(all_dept, department_fields)

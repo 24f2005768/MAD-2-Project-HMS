@@ -1,10 +1,17 @@
 <template>
-    <div>
+    <div class="container d-flex flex-column align-items-center justify-content-center flex-grow-1 min-vw-100 gap-3" style="min-height: 90vh;">
         <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
-        <div class="container d-flex flex-column align-items-center flex-grow-1">
+
+        <div class = "w-100 d-flex justify-content-center">
+            <h3 class>Register</h3>
+        </div>
+
+        <div class = 'card row d-flex flex-column justify-content-center align-items-center gap-2 w-50'>
             <form @submit.prevent = "RegisterPatient">
+                
                 <div class = 'row'>
-                    <div class="row">
+                    <!-- user name, password, email  -->
+                    <div class="row mt-3 mb-3">
                         <div class="col-md row-sm mb-3 form-floating form-floating">
                             <input type="text" class="form-control" placeholder="User Name*" v-model="user_name"
                             id="user_name floatingInput">
@@ -24,7 +31,8 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row mt-3 mb-3">
+                        <!-- contact_number name dob  -->
                         <div class="col-md row-sm mb-3 form-floating">
                             <input type="tel" class="form-control" placeholder="Contact Number" v-model="contact_number"
                             id="contact_number">
@@ -45,10 +53,11 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row mt-3 mb-3">
+                        <!-- gender, weight, height  -->
                         <div class="col-md row-sm mb-3 form-floating">
                             <select class="form-select" aria-label="Default select example" v-model="gender">
-                                <option selected>Select your gender</option>
+                                <option disabled value="">Please select gender</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                                 <option value="Other">Other</option>
@@ -68,7 +77,12 @@
                             <label for="weight" class="form-label">Weight in kg</label>
                         </div>
                     </div>
-                <div class = 'row d-flex flex-column align-items-center'><button type="submit" class="btn btn-primary col-2">Submit</button></div>
+
+                    <div class = 'row d-flex flex-column align-items-center mb-3'>
+                        <button type="submit" class="btn btn-outline-primary col-2">
+                            Submit
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

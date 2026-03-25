@@ -1,155 +1,96 @@
 <template>
     <div class = "container" v-bind="$attrs">
         <div class = "d-flex justify-content-between">
-            <h2>Doctors</h2>
+            <h2 class = "">Doctors</h2>
 
-            <button class = 'btn btn-primary' type="button" data-bs-toggle="collapse" data-bs-target="#add-doc-button">
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
                 Add
             </button>
+
+            <!-- modal  -->
+             <AddDoctorModal @form-add-doctor = "AddDoctor"/>
         </div>
-    </div>
 
-    <div class = 'collapse' id = 'add-doc-button'>
-        <div class = 'card card-body'>
-            <form>
-                <div class = 'row'>
-                    <div class = 'row'>
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="text" class="form-control"
-                            id="doc_user_name floatingInput">
-                            <label for="doc_user_name" class="form-label">User Name*</label>
-                        </div> 
-                                        
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="text" class="form-control"
-                            id="doc_password floatingInput">
-                            <label for="doc_password" class="form-label">Password*</label>
-                        </div>  
-
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="text" class="form-control"
-                            id="doc_name floatingInput">
-                            <label for="doc_name" class="form-label">Name*</label>
-                        </div>               
+        <div v-if="departments" class="col w-100">
+            <div class = "d-flex justify-content-between w-75 mx-auto">
+                <div class = "" v-for="dept in departments">
+                    <button :class = "{'btn btn-outline-primary': true, 'active': selectedDept == dept.department_id}" @click="selectedDept = dept.department_id">{{ dept.name }}</button>
+                </div>
+            </div>
+            <div v-for="dept in departments" class = "d-flex flex-column">
+                    <div v-if="selectedDept == dept.department_id" class = "">
+                    <div v-if="dept.doctors.length == 0" class = "w-100 mt-2 d-flex justify-content-center align-items-center" style="height: 50vh;">
+                        <p>No doctors to show</p>
                     </div>
-
-                    <div class = 'row'>
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="text" class="form-control"
-                            id="doc_contact_number floatingInput">
-                            <label for="doc_contact_number" class="form-label">Contact Number</label>
-                        </div>   
-
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="text" class="form-control"
-                            id="doc_email floatingInput">
-                            <label for="doc_email" class="form-label">Email</label>
-                        </div>   
-
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="date" class="form-control"
-                            id="doc_dob floatingInput">
-                            <label for="doc_dob" class="form-label">DOB</label>
-                        </div>                                        
-                    </div>
-
-                    <div class = 'row'>
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <select class="form-select">
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
-                            <label for="gender" class="form-label">Gender</label>  
-                        </div>    
-
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="text" class="form-control"
-                            id="doc_desc floatingInput">
-                            <label for="doc_desc" class="form-label">Description</label>
-                        </div>    
-                    </div>
-                    <div class = 'row d-flex flex-column align-items-center'><button type="submit" class="btn btn-primary col-2">Submit</button></div>
-                </div>             
-            </form>
-        </div>
-    </div>
-
-    <table class = 'table table-striped table-hover'>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Contact Number</th>
-                <th>Email</th>
-                <th>Info</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            <template v-for="(doctor, index) in doctors" :key="doctor.doctor_id">
-                <tr>
-                    <td><RouterLink :to = "`/admin/doctor/${doctor.doctor_id}`">{{ doctor.doctor_id }}</RouterLink></td>
-                    <td>{{ doctor.name }}</td>
-                    <td>{{ doctor.doctor_user.contact_number }}</td>
-                    <td>{{ doctor.doctor_user.email }}</td>
-                    <td @click="expandRow(index)">Click for more info</td>
-                </tr>
-
-                <tr v-show="additionalData[index]">
-                    <td colspan="6">
-                        <div class="row">
-                            <div>
-                                <img src = '../../assets/DefaultDepartment.png' height="200px" width="200px">
+                    <div v-else v-for="doctor in dept.doctors" class = "px-5 m-3">
+                        <!-- {{ doctor }} -->
+                        <!-- card for each doctor  -->
+                        <div class = "card d-flex flex-row w-100 h-auto shadow-sm hover-shadow m-2" v-if="selectedDept == doctor.dept.department_id">
+                            <!-- photo container  -->
+                            <div class = "col-3 d-flex flex-column justify-content-center align-items-center">
+                                <div class = "mt-2">
+                                    <img :src="`/images/${doctor.pfp}.png`" height="100px">
+                                </div>
+        
+                                <div>
+                                    <p><strong>Dr. {{ doctor.name }}</strong></p>
+                                </div>
                             </div>
-
-                            <div class = 'row'>
-                                <p>{{ doctor.description }}</p>
+        
+                            <!-- information container -->
+                            <div class = "col-9 d-flex align-items-center">
+                                <div class = "d-flex flex-column m-2">
+                                    <div><p><strong>Gender: </strong>{{ doctor.gender }}</p></div>
+                                    <div><p><strong>Contact Number: </strong>{{ doctor.doctor_user.contact_number }}</p></div>
+                                    <div><p><strong>Email: </strong>{{ doctor.doctor_user.email }}</p></div>
+                                    <div><p><strong>Description: </strong>{{ doctor.description }}</p></div>
+                                </div>
                             </div>
                         </div>
-                    </td>
-                </tr>
-            </template>
-        </tbody>
-    </table>  
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 
-<script setup>
-    import { ref, reactive } from 'vue'
-
-    const additionalData = ref({})
-
-    const expandRow = (index) => {
-        additionalData.value[index] = !additionalData.value[index]
-    }
-
-    
-</script>
-
 <script>
     import { requestAPI } from '../../utils/api';
+    import AddDoctorModal from './AdminDashComp/AddDoctorModal.vue';
 
     export default {
         name: 'AdminDashDoctor',
-        emits: ['error'],
+        emits: ['error', 'success'],
         data() {
             return {
-                doctors: [],
+                departments: [],
+                selectedDept: 1
             }
-
         },
-
+        components: {
+            AddDoctorModal
+        },
         methods: {
             async PopulateDoctor() {
                 try {
-                    const all_doctors = await requestAPI('GET', null, '/doctors')
-                    this.doctors = all_doctors
+                    const display_departments = await requestAPI("GET", null, `/depts`)
+                    this.departments = display_departments
                 }
                 catch(error) {
-                    this.$emit('error', error.message) 
+                    this.$emit('error', error.message)                  
                 }
             },
+            async AddDoctor(data) {
+                try {
+                    const add_doctor = await requestAPI("POST", data, "/doctor")
+                    this.PopulateDoctor()
+                    this.$emit('success', 'Doctor added successfully!')
+                }
+                catch(error) {
+                    this.$emit('error', error.message || 'An error occurred')
+                }
+            }
         },
 
         mounted() {

@@ -1,8 +1,8 @@
 <template>
     <div class = "toast-container position-fixed bottom-0 end-0 p-5">
         <div v-if="show" class = "toast show bottom-0" role="alert">
-            <div class="toast-header bg-danger text-white">
-                <p class = "mb-0">Error</p>
+            <div class = "toast-header bg-success text-white">
+                <p class = "mb-0">Success</p>
                 <button type="button" class="btn-close btn-close-white ms-auto" @click="show = false"></button>
             </div>
 
@@ -15,10 +15,10 @@
 
 <script>
     export default {
-        name: "errorToast",
+        name: "successToast",
         props: {
             message: {
-                type: [String, Object],
+                type: String,
                 required: true
             }
         },
@@ -28,12 +28,8 @@
             }
         },
         watch: {
-            // Reset show when message changes
-            message: {
-                immediate: true,
-                handler() {
-                    this.show = true;
-                }
+            message() {
+                this.show = true;
             }
         }
     }

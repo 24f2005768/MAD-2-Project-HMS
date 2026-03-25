@@ -4,6 +4,10 @@ from resources import api_bp
 from flask_cors import CORS
 from flask_caching import Cache
 from celery import Celery, Task
+from celery.schedules import crontab
+
+from tasks import reminders
+from caching_config import cache
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project_database.sqlite3'
@@ -13,8 +17,8 @@ app.config['SECURITY_PASSWORD_HASH'] = 'argon2'
 
 # flask caching
 app.config["CACHE_TYPE"] = "RedisCache"
-app.config["CACHE_DEFAULT_TIMEOUT"] = 300
-cache = Cache(app)
+app.config["CACHE_DEFAULT_TIMEOUT"] = 60
+cache.init_app(app)
 
 # testing cache
 
@@ -34,7 +38,7 @@ def celery_init_app(app: Flask) -> Celery:
             with app.app_context():
                 return self.run(*args, **kwargs)
 
-    celery_app = Celery(app.name, task_cls=FlaskTask)
+    celery_app = Celery(app.name, task_cls=FlaskTask, broker="redis://localhost:6379/0", backend="redis://localhost:6379/1")
     celery_app.config_from_object(app.config["CELERY"])
     celery_app.set_default()
     app.extensions["celery"] = celery_app
@@ -42,8 +46,6 @@ def celery_init_app(app: Flask) -> Celery:
 
 app.config.from_mapping(
     CELERY=dict(
-        broker_url="redis://localhost:6379/0",
-        result_backend="redis://localhost:6379/1",
         timezone = 'Asia/Kolkata',
     ),
 )
@@ -55,8 +57,32 @@ from tasks.test import add
 
 @app.route("/celery-task")
 def task():
-    add.delay(1,2)
-    return {"message": "task started"}
+    # result = add.delay(1,2)
+    result = reminders.monthly_report_doctors.delay()
+    return {"message": "task started", "result": result.ready()}
+
+
+@app.route("/reminders/patients")
+def get_report():
+    result = reminders.patient_daily_reminders()
+    return {"result": result}
+
+# Periodic Tasks
+@celery_app.on_after_configure.connect
+def setup_periodic_tasks(sender: Celery, **kwargs):
+    # Executes every Monday morning at 7:30 a.m.
+    sender.add_periodic_task(
+        crontab(hour=7, minute=30, day_of_week=2),
+        reminders.patient_daily_reminders.s(),
+        name="daily-reminders"
+    )
+
+    # Executes monthly report on the 1st of each month at 9 AM
+    sender.add_periodic_task(
+        crontab(day_of_month=1, hour=9, minute=0),
+        reminders.monthly_report_doctors.s(),
+        name="monthly-report"
+    )
 
 app.app_context().push()
 

@@ -6,55 +6,43 @@
             </div>
             
             <div>
-                <button class = 'btn btn-primary' type="button" data-bs-toggle="collapse" data-bs-target="#add-dept-button">
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal">
                     Add
                 </button>
+
+                <!-- modal  -->
+                <AddDepartmentModal @form-add-department = "AddDepartment"/>
             </div>
         </div>
     </div>
 
-    <div class = 'collapse' id = 'add-dept-button'>
-        <div class = 'card card-body'>
-            <form>
-                <div class = 'row'>
-                    <div class = 'row'>
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="text" class="form-control" placeholder="Department Name*"
-                            id="dept_name floatingInput">
-                            <label for="dept_name" class="form-label">Name</label>
-                        </div> 
-                                        
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="text" class="form-control" placeholder="Description*"
-                            id="desc floatingInput">
-                            <label for="desc" class="form-label">Description</label>
-                        </div>               
-                    </div>
-                    <div class = 'row d-flex flex-column align-items-center'><button type="submit" class="btn btn-primary col-2">Submit</button></div>
-                </div>             
-            </form>
-        </div>
-    </div>
-
-    <div class = 'accordion'>
-        <div v-for = 'dept in departments' class = 'accordion-item'>
-            <h2 class = 'accordion-header'>
-                <button class = 'accordion-button' type = 'button' data-bs-toggle = 'collapse' :data-bs-target = '`#${dept.department_id}`'>
-                    {{ dept.name }}
-                </button>
-            </h2>
-
-            <div :id = '`${dept.department_id}`' class = 'accordion-collapse collapse'>
-                <div class = 'accordion-body'>
-                    <div class = 'conatiner'>
-                        <div class = 'd-flex justify-content-between'>
-                            <h3 class = 'col-sm-10'><RouterLink :to = "`/admin/dept/${dept.department_id}`">{{ dept.name }}</RouterLink></h3>
-                        </div>
+    <div v-if="departments" class="col w-100">     
+        <div v-for="dept in departments" class = "d-flex flex-column">
+                <!-- <div v-if="dept.doctors.length == 0" class = "w-100 mt-2 d-flex justify-content-center align-items-center" style="height: 50vh;">
+                    <p>No doctors to show</p>
+                </div> -->
+                    
+            <!-- card for each department  -->
+            <div class = "card d-flex flex-row w-100 h-auto shadow-sm hover-shadow m-2">
+                <!-- photo container  -->
+                <div class = "col-3 d-flex flex-column justify-content-center align-items-center">
+                    <div class = "mt-2">
+                        <img :src="`/images/${dept.pfp}.png`" height="100px">
                     </div>
 
-                    <p>{{ dept.description }}</p>
+                    <div>
+                        <p><strong><RouterLink :to = "`/admin/dept/${dept.department_id}`">{{ dept.name }}</RouterLink></strong></p>
+                    </div>
                 </div>
-            </div>            
+
+                <!-- information container -->
+                <div class = "col-9 d-flex align-items-center">
+                    <div class = "d-flex flex-column m-2">
+                        <div><p><strong>Description: </strong>{{ dept.description }}</p></div>
+                        <div><p><strong>Doctors: </strong>{{ dept.doctors.length }}</p></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -62,13 +50,18 @@
 <script>
     import { requestAPI } from '../../utils/api';
 
+    import AddDepartmentModal from './AdminDashComp/AddDepartmentModal.vue';
+
     export default {
         name: 'AdminDashDept',
-        emits: ['error'],
+        emits: ['error', 'success'],
         data() {
             return {
                 departments: []
             }
+        },
+        components: {
+            AddDepartmentModal
         },
         methods: {
             async PopulateDept() {
@@ -79,6 +72,16 @@
                 catch(error) {
                 this.$emit('error', error.message) 
                 }
+            },
+            async AddDepartment(data) {
+                try {
+                    const add_doctor = await requestAPI("POST", data, "/dept")
+                    this.PopulateDept()
+                    this.$emit('success', 'Department added successfully!')
+                }
+                catch(error) {
+                    this.$emit('error', error.message || 'An error occurred')
+                }
             }
         },
         mounted() {
@@ -86,3 +89,14 @@
         }
     }
 </script>
+
+<style scoped>
+    .hover-shadow {
+        transition: all 0.2s ease;
+    }
+
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175)!important;
+    }    
+</style>
