@@ -1,6 +1,7 @@
 <template>
     <div class="container d-flex align-items-start flex-grow-1 min-vh-90 min-vw-100">
         <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
+        <successToast v-if="successMessage" :message="successMessage" @close="successMessage = ''"/>
 
         <div class = 'container'>
             <div class = 'col'>
@@ -30,7 +31,7 @@
                     
                     <!-- Home  -->
                     <div class="tab-pane fade show active w-100" id="v-tab-home" role="tabpanel">
-                        <PatientProfile @error = "errorHandler"/>
+                        <PatientProfile @error = "errorHandler" @success="successHandler"/>
                     </div>
 
                     <!-- Stats -->
@@ -40,12 +41,12 @@
 
                     <!-- Patients  -->
                     <div class="tab-pane fade w-100" id="v-tab-doctors" role="tabpanel">
-                        <PatientDashDoctors @error = "errorHandler"/>
+                        <PatientDashDoctors @error = "errorHandler" @success="successHandler"/>
                     </div>
 
                     <!-- Appointments  -->
                     <div class="tab-pane fade w-100" id="v-tab-appt" role="tabpanel">
-                        <PatientDashAppointments @error = "errorHandler"/>
+                        <PatientDashAppointments @error = "errorHandler" @success="successHandler"/>
                     </div>
                 </div>
             </div>
@@ -55,6 +56,7 @@
 
 <script>
     import errorToast from '@/components/errorToast.vue';
+    import successToast from '@/components/successToast.vue';
     
     import PatientProfile from '@/components/PatientDashComp/PatientProfile.vue';
     import PatientDashDoctors from '@/components/PatientDashComp/PatientDashDoctors.vue';
@@ -65,18 +67,31 @@
         data() {
             return {
                 errorMessage: "",
-                tabshown: 'home'
+                successMessage: "",
+                tabshown: 'home',
             }
         },
         components: {
             errorToast,
+            successToast,
             PatientProfile,
             PatientDashDoctors,
             PatientDashAppointments
         },
         methods: {
-            errorHandler(error) {
-                this.errorMessage = error.message
+            errorHandler(message) {
+                this.errorMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.errorMessage = '';
+                }, 5000);
+            },
+            successHandler(message) {
+                this.successMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.successMessage = '';
+                }, 5000);
             }
         }
     }

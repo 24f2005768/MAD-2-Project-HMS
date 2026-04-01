@@ -36,7 +36,7 @@
 
                 <div class="tab-content d-flex flex-grow-1" id="v-tab-tabContent">
                     <div class="tab-pane fade show active w-100" id="v-tab-home" role="tabpanel">
-                        Statistics and Charts
+                        <AdminDashCharts @error = "errorHandler"/>
                     </div>
 
                     <div class="tab-pane fade w-100" id="v-tab-profile" role="tabpanel">
@@ -64,10 +64,11 @@
     import errorToast from '@/components/errorToast.vue';
     import successToast from '@/components/successToast.vue';
 
-    import AdminDashDept from '@/components/AdminDashDept.vue';
-    import AdminDashDoctor from '@/components/AdminDashDoctor.vue';
-    import AdminDashPatient from '@/components/AdminDashPatient.vue';
-    import AdminDashAppointment from '@/components/AdminDashAppointment.vue';
+    import AdminDashDept from '@/components/AdminDashComp/AdminDashDept.vue';
+    import AdminDashDoctor from '@/components/AdminDashComp/AdminDashDoctor.vue';
+    import AdminDashPatient from '@/components/AdminDashComp/AdminDashPatient.vue';
+    import AdminDashAppointment from '@/components/AdminDashComp/AdminDashAppointment.vue';
+    import AdminDashCharts from '@/components/AdminDashComp/AdminDashCharts.vue';
 
     export default {
         name: 'AdminDashboard',
@@ -83,6 +84,7 @@
             AdminDashDoctor,
             AdminDashPatient,
             AdminDashAppointment,
+            AdminDashCharts,
             errorToast,
             successToast
         },

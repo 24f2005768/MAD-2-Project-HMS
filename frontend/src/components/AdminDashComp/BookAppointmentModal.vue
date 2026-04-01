@@ -1,5 +1,5 @@
 <template>
-    <div class="modal fade" id="bookAppointment" tabindex="-1">
+    <div class="modal fade" id="bookAppointment" tabindex="-1" v-bind="$attrs">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -9,16 +9,39 @@
 
                 <div class="modal-body">
                     <div class = "d-flex justify-content-center align-items-center flex-column mb-3">
-                        <div v-if="doctor">
-                            <img :src="`/images/${doctor.pfp}.png`" height="100px">
+                        <!-- Profile Pictures  -->
+                        <div class = "d-flex justify-content-center w-100">
+                            <!-- Patient  -->
+                            <div class = "d-flex align-items-center justify-content-center flex-column flex-grow-1" v-if="patient">
+                                <div>
+                                    <img :src="`/images/${patient.pfp}.png`" height="100px">
+                                </div>
+                                <div>
+                                    <h6>{{ patient.name }}</h6>
+                                </div>
+                            </div>
+                            <!-- Doctor  -->
+                            <div class = "d-flex align-items-center justify-content-center flex-column flex-grow-1" v-if="doctor">
+                                <div>
+                                    <img :src="`/images/${doctor.pfp}.png`" height="100px">
+                                </div>
+                                <div>
+                                    <h6>Dr. {{ doctor.name }}</h6>
+                                </div>
+                            </div>
                         </div>
-                        <div v-if="doctor">
-                            <h6>Dr. {{ doctor.name }}</h6>
-                        </div>
+                        <!-- Slot  -->
                         <div v-if="slot">
-                            <!-- {{ slot }} -->
-                            <h6>{{ slot.start_time }} - {{ slot.end_time }} ({{ slot.slots_shifts.name }})</h6>
+                            <h6>{{ slot.date }} - {{ slot.start_time }} - {{ slot.end_time }} ({{ slot.slots_shifts.name }})</h6>
                         </div>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="inputGroupSelect02">Patients</label>
+                        <select class="form-select" id="inputGroupSelect02" v-model="selectedPatientID">
+                            <option selected disabled value="">Please select a patient</option>
+                            <option v-for = "patient in all_patients" :key = "patient.patient_id" :value = "patient.patient_id">{{ patient.name }}</option>
+                        </select>
                     </div>
 
                     <div class="input-group mb-3">
@@ -41,16 +64,11 @@
                         <label class="input-group-text" for="inputGroupSelect04">Slot</label>
                         <select class="form-select" id="inputGroupSelect04" v-model="selectedSlotID">
                             <option selected disabled value="">Please select a slot</option>
-                            <!-- <option v-for = "s in shift" :value = "s.id">{{ s.start_time }} - {{ s.end_time }}</option> -->
                             <template v-for="s in shift" :key="s.id">
-                                <option v-if="s.doctor_free === true && s.patient_free === true" :value="s.id">
+                                <option v-if="s.doctor_free === true" :value="s.id">
                                     {{ s.start_time }} - {{ s.end_time }} (Available)
-                                    <!-- {{ s }} -->
                                 </option>
-                                <option v-else-if="s.patient_free === false && s.doctor_free === true" disabled :value="s.id" class="text-muted">
-                                    {{ s.start_time }} - {{ s.end_time }} (You have an appointment)
-                                </option>
-                                <option v-else-if="s.doctor_free === false && s.patient_free === true" disabled :value="s.id" class="text-muted">
+                                <option v-else disabled :value="s.id" class="text-muted">
                                     {{ s.start_time }} - {{ s.end_time }} (Booked)
                                 </option>
                             </template>
@@ -73,16 +91,19 @@
 
     export default {
         name: 'BookAppointmentModal',
-        emits: ['error'],
+        emits: ['error', 'success'],
         data() {
             return {
                 store: useUserStore(),
                 appointments: [],
                 doctor: null,
+                patient: null,
                 all_doctors: null,
+                all_patients: null,
                 shift: null, 
                 slot: null,
                 selectedDoctorID: "",
+                selectedPatientID: "",
                 selectedShiftID: "",
                 selectedSlotID: ""
             }
@@ -92,19 +113,27 @@
                 const allDoctors = await requestAPI("GET", null, "/doctors")
                 this.all_doctors = allDoctors
             },
+            async PopulatePatients() {
+                const allPatients = await requestAPI("GET", null, "/patients")
+                this.all_patients = allPatients
+            },
             async ConfirmBooking() {
                 try {
                     const data = { 
-                        patient_id: this.store.user.patient_id
+                        patient_id: this.selectedPatientID
                     }
                     const selected_slot = await requestAPI("PATCH", data, `/book-appointment/${this.slot.id}`)
-                    console.log("Successful Booking")
+                    this.$emit("success", "Appointment booked successfully!")
                 }
                 catch(error) {
                     console.log(error)
-                    console.error("Error booking an appointment", error)
+                    this.$emit("error", error.message)
                 }
-            }
+            },
+            async selectPatient(patient_id) {
+                const selected_patient = await requestAPI("GET", null, `/patient/${patient_id}`)
+                this.patient = selected_patient
+            },
         },
         watch: {
             async selectedDoctorID(newVal, oldVal) {
@@ -116,6 +145,14 @@
                 if (newVal) {
                     const selected_doctor = await requestAPI("GET", null, `/doctor/${newVal}?availability=true`)
                     this.doctor = selected_doctor
+                }
+            },
+            async selectedPatientID(newVal, oldVal) {
+                this.selectedPatientID = ""
+
+                if (newVal) {
+                    const selected_patient_modal = await requestAPI("GET", null, `/patient/${newVal}`)
+                    this.patient = selected_patient_modal
                 }
             },
             async selectedShiftID(newVal, oldVal) {
@@ -144,7 +181,8 @@
             }
         },
         mounted() {
-            this.PopulateDoctors()
+            this.PopulateDoctors(),
+            this.PopulatePatients()
         }
     }
 </script>

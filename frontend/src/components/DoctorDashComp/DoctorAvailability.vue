@@ -44,7 +44,7 @@
             <p>No appointments scheduled today</p>
         </div>
 
-          <div class = "d-flex justify-content-start flex-wrap  gap-2">
+        <div class = "d-flex justify-content-start flex-wrap  gap-2">
             <div v-for="a in thisWeekAppt">
                 <div class="card" style="min-height: 220px; max-width: 222px;">
                     <div class="card-body">

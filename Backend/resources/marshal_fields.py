@@ -67,7 +67,8 @@ patient_fields = {
     "get_age": fields.String(attribute=lambda patient:patient.get_age()),
     "patient_user": fields.Nested({'user_name': fields.String
                                    ,'contact_number': fields.String, 
-                                   'email': fields.String})
+                                   'email': fields.String,
+                                   'blacklisted': fields.Boolean})
 }
 
 treatment_fields = {
@@ -101,7 +102,7 @@ slot_fields = {
     "date": DateField,
     "start_time": TimeField,
     "end_time": TimeField,
-    "slots_doctor": fields.Nested({"name": fields.String}),
+    "slots_doctor": fields.Nested({"doctor_id": fields.Integer, "name": fields.String}),
     "slots_patient": fields.Nested({"name": fields.String}),
     "slots_shifts": fields.Nested(shift_fields)
 }

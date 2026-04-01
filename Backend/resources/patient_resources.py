@@ -5,6 +5,7 @@ from flask_security import auth_required, roles_required, current_user, hash_pas
 
 from models import *
 from .marshal_fields import patient_fields, appointment_fields
+from tasks import reminders
 
 # parser for GET requests
 get_parser = reqparse.RequestParser()
@@ -56,8 +57,8 @@ class PatientResources(Resource):
             patient_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
             
             # this patient's today appointments
-            upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date == date.today()).all()
-            patient_data['today_appointment'] = marshal(upcoming_apt, appointment_fields)
+            today_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date == date.today()).order_by(Appointment.start_time).all()
+            patient_data['today_appointment'] = marshal(today_apt, appointment_fields)
 
         return patient_data, 200
     
@@ -79,7 +80,7 @@ class PatientResources(Resource):
                 return {"message": "Patient does not exist"}, 404
             
             data = request.get_json()
-
+            print(data)
             for key in data:
                 # check if DOB is updated
                 if key == 'dob' and data[key]:
@@ -101,12 +102,16 @@ class PatientResources(Resource):
                 # only admin can blacklist
                 elif key == 'blacklist':
                     if current_user.has_role("Admin"):
+                        upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date >= date.today(), Appointment.status == "Booked").all()
                         if patient.patient_user.blacklisted == False:
                             # blackist this patient
                             patient.patient_user.blacklisted = True
                             # set the active to false so the patient cannot login
                             patient.patient_user.active = False
 
+                            # Cancel all booked upcoming appointments
+                            for appt in upcoming_apt:
+                                appt.status = "Cancelled by Admin"
                         else:
                             # undo blackist
                             patient.patient_user.blacklisted = False
@@ -129,3 +134,10 @@ class AllPatientResources(Resource):
     def get(self):
         all_patients = Patient.query.all()
         return marshal(all_patients, patient_fields), 200
+    
+class PatientTreatmentHistory(Resource):
+    @auth_required("token")
+    @roles_required("Patient")
+    def get(self, patient_id):
+        result = reminders.treatment_history_patient(patient_id=patient_id)
+        return result, 200

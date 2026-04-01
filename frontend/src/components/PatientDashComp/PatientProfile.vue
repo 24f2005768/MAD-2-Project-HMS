@@ -34,6 +34,10 @@
                                     <span v-if="collapseProfile">View Profile</span>
                                     <span v-else>Collapse Profile</span>
                                 </button>
+
+                                <button class = "btn btn-outline-info" @click="sendTreatmentHistory">
+                                    Request Treatment History
+                                </button>
                             </div>
                         </div>
                                                
@@ -47,8 +51,8 @@
                             <p><strong>Age: </strong>{{ patient.get_age }}</p>
                             <p><strong>Contact Number: </strong>{{ patient.patient_user.contact_number }}</p>
                             <p><strong>Email: </strong>{{ patient.patient_user.email }}</p>
-                            <p><strong>Height: </strong>{{ patient.height }}</p>
-                            <p><strong>Weight: </strong>{{ patient.weight }}</p>
+                            <p><strong>Height: </strong>{{ patient.height }} cm</p>
+                            <p><strong>Weight: </strong>{{ patient.weight }} kg</p>
                         </div>
                     </div>
                 </div>
@@ -108,13 +112,15 @@
 
     export default {
         name: "PatientProfile",
+        emits: ["error", "success"],
         data() {
             return {
                 store: useUserStore(),
                 patient: null,
-                errorMessage: "",
+                // errorMessage: "",
                 collapseProfile: true,
-                selected_appt: null
+                selected_appt: null,
+                // successMessage: ""
             }
         },
         components: {
@@ -152,6 +158,19 @@
                     const modalEl = document.getElementById('update-patient-profile-modal');
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     modal.hide()
+                }
+                catch(error) {
+                    this.$emit('error', error.message)
+                }
+            },
+            async sendTreatmentHistory() {
+                try {
+                    const patientID = this.store.user.patient_id;
+                    const send_history = await requestAPI("GET", null, `/patient/treatment-history/${patientID}`)
+
+                    if (send_history) {
+                        this.$emit('success', "Your report was sent successfully! Please check your inbox.")
+                    }
                 }
                 catch(error) {
                     this.$emit('error', error.message)

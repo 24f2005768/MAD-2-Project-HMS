@@ -3,9 +3,17 @@
         <div class = 'container'>
             <div class = 'col'>
                 <div class="nav nav-tab me-3 my-auto d-flex align-items-center justify-content-center" id="v-tab-tab" role="tablist" aria-orientation="vertical">
-                    <button class="nav-link active" id="v-tab-home-tab" data-bs-toggle="pill" data-bs-target="#v-tab-home" type="button" role="tab">Availability</button>
-                    <button class="nav-link" id="v-tab-profile-tab" data-bs-toggle="pill" data-bs-target="#v-tab-profile" type="button" role="tab">Upcoming Appointments</button>
-                    <button class="nav-link" id="v-tab-messages-tab" data-bs-toggle="pill" data-bs-target="#v-tab-messages" type="button" role="tab">Past Appointments</button>
+                    <button class="nav-link active" id="v-tab-home-tab" data-bs-toggle="pill" data-bs-target="#v-tab-home" type="button" role="tab">
+                        Availability
+                    </button>
+
+                    <button class="nav-link" id="v-tab-profile-tab" data-bs-toggle="pill" data-bs-target="#v-tab-profile" type="button" role="tab">
+                        Upcoming Appointments
+                    </button>
+
+                    <button class="nav-link" id="v-tab-messages-tab" data-bs-toggle="pill" data-bs-target="#v-tab-messages" type="button" role="tab">
+                        Past Appointments
+                    </button>
                 </div>                
             </div>
 
@@ -16,24 +24,41 @@
                     <div class = "d-flex justify-content-between">
                         <h2>Doctor Profile</h2>
 
-                        <div class = "d-flex gap-1">
+                        <!-- <div class = "d-flex gap-1">
                             <button class = "btn btn-primary" v-show = "blacklist_button" v-on:click="changeBlacklistStatus">Blacklist</button>
                             <button class = "btn btn-primary" v-show = "undo_blacklist_button" v-on:click="changeBlacklistStatus"> Undo Blacklist</button>
                             <button class = "btn btn-primary" type = "button" data-bs-toggle="modal" data-bs-target="#exampleModal">Update</button>
                             <button class = "btn btn-primary" v-on:click="deleteDoctor">Delete</button>
+                        </div> -->
+
+                        <div class = "d-flex gap-1">
+                            <button class = "btn btn-outline-danger" v-show = "blacklist_button" v-on:click="changeBlacklistStatus">
+                                Blacklist
+                            </button>
+
+                            <button class = "btn btn-outline-danger" v-show = "undo_blacklist_button" v-on:click="changeBlacklistStatus">
+                                Undo Blacklist
+                            </button>
+                            
+                            <button class = "btn btn-outline-secondary" type = "button" data-bs-toggle = "modal" data-bs-target = "#update-doctor-modal">
+                                Update
+                            </button>
+
+                            <button class = "btn btn-outline-primary" v-on:click="deleteDoctor">
+                                Delete
+                            </button>
                         </div>
                     </div>
 
                     <div class = 'row'>
-                        <div class = 'col-sm-3'>
-                            <img src = '../../../assets/DefaultDepartment.png' height="200px" width="200px">
+                        <div class = 'col-sm-3 text-center'>
+                            <img :src="`/images/${doctor.pfp}.png`" height="200px" width="200px">
+                            <h3>Dr. {{ doctor.name }}</h3>
                         </div>
                         
                         <div class = 'col'>
                             <h3 v-show = "blacklist_status">This user is currently blacklisted</h3>
-                            <h3>Dr. {{ doctor.name }}</h3>
                             <p><strong>Contact Number:</strong> {{ doctor.doctor_user.contact_number }}</p>
-                            <p><strong>Gender:</strong> {{ doctor.gender }}</p>
                             <p><strong>Email:</strong> {{ doctor.doctor_user.email }}</p>
                             <p><strong>DOB:</strong> {{ doctor.dob }}</p>
                             <p><strong>Gender:</strong> {{ doctor.gender }}</p>
@@ -43,7 +68,7 @@
                 </div>
 
                 <!-- Modal -->
-                <div class="modal fade" id="exampleModal" tabindex="-1">
+                <div class="modal fade" id="update-doctor-modal" tabindex="-1">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -124,32 +149,52 @@
 
                     <!-- Upcoming Appointments -->
                     <div class="tab-pane fade w-100" id="v-tab-profile" role="tabpanel">
-                        <div v-if = "ua">
-                            <ol>
-                                <li v-for = "a in doctor.upcoming_appointment">
-                                    <p><strong>Appointment ID:</strong> {{ a.appointment_id }}</p>
-                                    <p><strong>Date:</strong> {{ a.date }}</p>
-                                    <p><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
-                                    <p><strong>Patient:</strong> {{ a.app_patient.name }}</p>
-                                </li>
-                            </ol>                            
+                       <!-- card for each appointment  -->
+                        <div v-if="doctor.upcoming_appointment.length != 0" class = "d-flex justify-content-start flex-wrap  gap-2">
+                            <div v-for="a in doctor.upcoming_appointment">
+                                <div class="card" style="min-height: 220px; max-width: 222px;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ a.app_patient.name }}</h5>
+                                        <!-- <h6 class = "card-title">Dr. {{ a.app_doctor.name }}</h6> -->
+                                        <div class = "border-top">
+                                            <p class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</p> 
+                                            <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
+                                            <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
+                                            <button class = "btn btn-outline-secondary">View Details</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <p v-else>No upcoming appointments to show</p>
+
+                        <div v-else>
+                            <p>No past appointments to show</p>
+                        </div>
                     </div>
 
                     <!-- Past Appointments  -->
                     <div class="tab-pane fade w-100" id="v-tab-messages" role="tabpanel">
-                        <div v-if = "pa">
-                            <ol>
-                                <li v-for = "a in doctor.past_appointment">
-                                    <p><strong>Appointment ID:</strong> {{ a.appointment_id }}</p>
-                                    <p><strong>Date:</strong> {{ a.date }}</p>
-                                    <p><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
-                                    <p><strong>Patient:</strong> {{ a.app_patient.name }}</p>
-                                </li>
-                            </ol>                            
+                        <!-- card for each appointment  -->
+                        <div v-if="doctor.past_appointment.length != 0" class = "d-flex justify-content-start flex-wrap  gap-2">
+                            <div v-for="a in doctor.past_appointment">
+                                <div class="card" style="min-height: 220px; max-width: 222px;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ a.app_patient.name }}</h5>
+                                        <!-- <h6 class = "card-title">Dr. {{ a.app_doctor.name }}</h6> -->
+                                        <div class = "border-top">
+                                            <p class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</p> 
+                                            <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
+                                            <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
+                                            <button class = "btn btn-outline-secondary">View Details</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <p v-else>No past appointments to show</p>
+
+                        <div v-else>
+                            <p>No past appointments to show</p>
+                        </div>
                     </div>
 
                 </div>
@@ -257,3 +302,9 @@
         }
     }
 </script>
+
+<style scoped>
+    .nav-tab .nav-link.active {
+        border-bottom: 2px solid orangered !important;
+    }
+</style>

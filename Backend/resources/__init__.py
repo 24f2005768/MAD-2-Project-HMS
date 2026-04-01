@@ -3,10 +3,11 @@ from flask_restful import Api
 
 from resources.auth_resources import LoginResource, RegisterResource, LogoutResource
 from resources.doctor_resources import DoctorResources, AllDoctorResources, Availability, DoctorAppointments
-from resources.patient_resources import PatientResources, AllPatientResources
+from resources.patient_resources import PatientResources, AllPatientResources, PatientTreatmentHistory
 from resources.appoinmtemt_resources import AppointmentResources, AllAppointmentResources, SelectShift, BookAppointment, CancelAppointment, TreatmentResources
 from resources.department_resources import DepartmentResources, AllDepartmentResources
 from resources.search_resources import AdminSearch, DoctorSearch, PatientSearch
+from resources.chart_resources import AdminChartsResources
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 api = Api(api_bp)
@@ -28,6 +29,7 @@ api.add_resource(AllDepartmentResources, "/depts")
 api.add_resource(RegisterResource, "/register")
 api.add_resource(PatientResources, "/patient", "/patient/<int:patient_id>")
 api.add_resource(AllPatientResources, "/patients")
+api.add_resource(PatientTreatmentHistory, "/patient/treatment-history/<int:patient_id>")
 
 # Appointment Routes
 api.add_resource(AppointmentResources, '/appointment', '/appointment/<int:appointment_id>')
@@ -41,3 +43,6 @@ api.add_resource(TreatmentResources, '/treatment/<int:id>')
 api.add_resource(AdminSearch, "/admin/search")
 api.add_resource(DoctorSearch, "/doctor/search")
 api.add_resource(PatientSearch, "/patient/search")
+
+# Chart Routes 
+api.add_resource(AdminChartsResources, "/admin/charts")

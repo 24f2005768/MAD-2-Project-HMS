@@ -21,9 +21,30 @@ parser.add_argument("treatment", type = str)
 # get the particular 15-15 minutes slots for this particular doctor and selected shift
 class SelectShift(Resource):
     def get(self, doctor_id, shift_id):
+        # print(shift_id)
         shift = Shift.query.filter(Shift.id == shift_id).first()
         all_available_slots = Slots.query.filter(Slots.doctor_id == doctor_id, Slots.shift_id == shift.id).all()
-        return marshal(all_available_slots, slot_fields), 200
+        
+        results = marshal(all_available_slots, slot_fields)
+
+        for i, slot in enumerate(all_available_slots):
+            if slot.patient_id is None:
+                results[i]["doctor_free"] = True
+            else:
+                results[i]["doctor_free"] = False
+
+            if current_user.has_role("Patient"):
+                slot_shift_id = slot.shift_id
+                              
+                # If the current patient has already booked an appointment, then show message
+                other_bookings = Slots.query.filter(Slots.shift_id == slot_shift_id, Slots.patient_id == current_user.user_patient.patient_id, 
+                                                    Slots.id != slot.id, Slots.start_time == slot.start_time).all()
+                if other_bookings == []:
+                    results[i]["patient_free"] = True
+                else:
+                    results[i]["patient_free"] = False
+
+        return results, 200
 
 # book an appointment for a particular patient    
 class BookAppointment(Resource):
@@ -44,7 +65,8 @@ class BookAppointment(Resource):
         for key in data:
             setattr(slot, key, data[key])
 
-        slot.slots_app = Appointment(date = slot.date, start_time = slot.start_time, end_time = slot.end_time, doctor_id = slot.doctor_id, patient_id = slot.patient_id, status = "Booked")
+        slot.slots_app = Appointment(date = slot.date, start_time = slot.start_time, end_time = slot.end_time, doctor_id = slot.doctor_id, 
+                                     patient_id = slot.patient_id, status = "Booked")
         db.session.commit()
         return marshal(slot, slot_fields), 200
 
@@ -67,40 +89,59 @@ class AppointmentResources(Resource):
         if (flag == None):
             return appointment_data, 200
         else:
-            if current_user.has_role("Doctor"):
-                doctor_id = current_user.user_doctor.doctor_id
-                patient_id = appointment.patient_id
-                doctor = db.get_or_404(Doctor, doctor_id)
+            # if current_user.has_role("Doctor"):
+            #     doctor_id = current_user.user_doctor.doctor_id
+            #     patient_id = appointment.patient_id
+            #     doctor = db.get_or_404(Doctor, doctor_id)
 
-                # this patient's past appointments with this doctor
-                past_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date < date.today(), Appointment.doctor_id == doctor.doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
-                appointment_data['past_appointment'] = marshal(past_apt, appointment_fields)
+            #     # this patient's past appointments with this doctor
+            #     past_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date < date.today(), Appointment.doctor_id == doctor.doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
+            #     appointment_data['past_appointment'] = marshal(past_apt, appointment_fields)
 
-                # this patient's upcoming appointments with this doctor
-                upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date >= date.today(), Appointment.doctor_id == doctor.doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
-                appointment_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
+            #     # this patient's upcoming appointments with this doctor
+            #     upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date >= date.today(), Appointment.doctor_id == doctor.doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
+            #     appointment_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
             
-            elif current_user.has_role("Patient"):
-                doctor_id = appointment.doctor_id
-                patient_id = current_user.user_patient.patient_id
-                patient = db.get_or_404(Patient, patient_id)
+            # elif current_user.has_role("Patient"):
+            #     doctor_id = appointment.doctor_id
+            #     patient_id = current_user.user_patient.patient_id
+            #     patient = db.get_or_404(Patient, patient_id)
 
-                # this patient's past appointments with this doctor
-                past_apt = Appointment.query.filter(Appointment.patient_id == patient.patient_id, Appointment.date < date.today(), Appointment.doctor_id == doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
-                appointment_data['past_appointment'] = marshal(past_apt, appointment_fields)
+            #     # this patient's past appointments with this doctor
+            #     past_apt = Appointment.query.filter(Appointment.patient_id == patient.patient_id, Appointment.date < date.today(), Appointment.doctor_id == doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
+            #     appointment_data['past_appointment'] = marshal(past_apt, appointment_fields)
 
-                # this patient's upcoming appointments with this doctor
-                upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient.patient_id, Appointment.date >= date.today(), Appointment.doctor_id == doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
-                appointment_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
+            #     # this patient's upcoming appointments with this doctor
+            #     upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient.patient_id, Appointment.date >= date.today(), Appointment.doctor_id == doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
+            #     appointment_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
 
-            return appointment_data
+        
+            doctor_id = appointment.doctor_id
+            patient_id = appointment.patient_id
+
+            # this patient's past appointments with this doctor
+            past_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date < date.today(), Appointment.doctor_id == doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
+            appointment_data['past_appointment'] = marshal(past_apt, appointment_fields)
+
+            # this patient's upcoming appointments with this doctor
+            upcoming_apt = Appointment.query.filter(Appointment.patient_id == patient_id, Appointment.date >= date.today(), Appointment.doctor_id == doctor_id, Appointment.appointment_id != appointment.appointment_id).all()
+            appointment_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
+
+            return appointment_data, 200
 
 
 class AllAppointmentResources(Resource):
     @auth_required("token")
     def get(self):
-        all_appointments = Appointment.query.all()
-        return marshal(all_appointments, appointment_fields), 200
+        results = {"past_appointments": {}, "upcoming_appointments": {}}
+
+        past_appointments = Appointment.query.filter(Appointment.date < date.today()).all()
+        upcoming_appointments = Appointment.query.filter(Appointment.date >= date.today()).all()
+
+        results["past_appointments"] = marshal(past_appointments, appointment_fields)
+        results["upcoming_appointments"] = marshal(upcoming_appointments, appointment_fields)
+        # print(results)
+        return results, 200
     
 class CancelAppointment(Resource):
     @auth_required("token")
@@ -116,6 +157,8 @@ class CancelAppointment(Resource):
             patient_id = current_user.user_patient.patient_id
             patient = db.get_or_404(Patient, patient_id)
             appointment.status = f"Cancelled by {patient.name}"
+        else:
+            appointment.status = f"Cancelled by Admin"
         db.session.commit()
 
 class TreatmentResources(Resource):
@@ -139,7 +182,7 @@ class TreatmentResources(Resource):
     def patch(self, id):
         appointment = db.get_or_404(Appointment, id)
         data = request.get_json()
-        print(data)
+        # print(data)
         diagnosis = data["diagnosis"]
         notes = data["notes"]
         prescription = data["prescription"]

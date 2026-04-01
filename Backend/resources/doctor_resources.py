@@ -184,18 +184,18 @@ class DoctorResources(Resource):
         # this doctor's past appointments
         if current_user.has_role("Patient"):
             patient = db.get_or_404(Patient, current_user.user_patient.patient_id)
-            past_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.patient_id == patient.patient_id, Appointment.date < date.today()).all()
+            past_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.patient_id == patient.patient_id, Appointment.date < date.today()).order_by(desc(Appointment.start_time)).all()
         else:
-            past_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date < date.today()).all()
+            past_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date < date.today()).order_by(desc(Appointment.start_time)).all()
         doctor_data['past_appointment'] = marshal(past_apt, appointment_fields)
         
         # flag 1
         # this doctor's upcoming appointments
         if current_user.has_role("Patient"):
             patient = db.get_or_404(Patient, current_user.user_patient.patient_id)
-            upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.patient_id == patient.patient_id, Appointment.date > date.today()).all()
+            upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.patient_id == patient.patient_id, Appointment.date > date.today()).order_by(Appointment.start_time).all()
         else:
-            upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date > date.today()).all()
+            upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date > date.today()).order_by(Appointment.start_time).all()
         doctor_data['upcoming_appointment'] = marshal(upcoming_apt, appointment_fields)
 
         return doctor_data, 200
@@ -239,12 +239,16 @@ class DoctorResources(Resource):
                 # only admin can blacklist
                 elif key == 'blacklist':
                     if current_user.has_role("Admin"):
+                        upcoming_apt = Appointment.query.filter(Appointment.doctor_id == doctor_id, Appointment.date >= date.today(), Appointment.status == "Booked").all()
                         if doctor.doctor_user.blacklisted == False:
                             # blackist this doctor
                             doctor.doctor_user.blacklisted = True
                             # set the active to false so the doctor cannot login
                             doctor.doctor_user.active = False
-
+                            
+                            # Cancel all booked upcoming appointments
+                            for appt in upcoming_apt:
+                                appt.status = "Cancelled by Admin"
                         else:
                             # undo blackist
                             doctor.doctor_user.blacklisted = False

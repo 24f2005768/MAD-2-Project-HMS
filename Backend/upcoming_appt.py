@@ -33,66 +33,16 @@ next_week_dates = [(date_today + timedelta(days = i)) for i in range(1,8)]
 tomorrow_shift = Shift.query.filter(Shift.date == next_week_dates[0]).all()
 day_after_tomorrow_shift = Shift.query.filter(Shift.date == next_week_dates[1]).all()
 
-'''
-doctor = db.get_or_404(Doctor, 2)
-
-# To get all shifts for a doctor
-doctor_shifts = doctor.doctor_shift  # List of Shift objects
-
-# Today shifts
-shift1 = today_shift[1]
-shift2 = today_shift[2]
-
-# Next week shifts
-shift3 = tomorrow_shift[0]
-shift4 = tomorrow_shift[2]
-
-shift5 = day_after_tomorrow_shift[0]
-shift6 = day_after_tomorrow_shift[1]
-# doctors_in_shift = shift.shift_doctor  # List of Doctor objects
-
-# To add a doctor to a shift (either way works)
-if shift1 not in doctor.doctor_shift:
-    doctor.doctor_shift.append(shift1)
-
-if shift2 not in doctor.doctor_shift:
-    doctor.doctor_shift.append(shift2)
-
-if shift3 not in doctor.doctor_shift:
-    doctor.doctor_shift.append(shift3)
-
-if shift4 not in doctor.doctor_shift:
-    doctor.doctor_shift.append(shift4)
-
-if shift5 not in doctor.doctor_shift:
-    doctor.doctor_shift.append(shift5)
-
-if shift6 not in doctor.doctor_shift:
-    doctor.doctor_shift.append(shift6)
-
-for a in doctor.doctor_shift:
-    check_existing_slots = Slots.query.filter(Slots.shift_id == a.id).all()
-    if check_existing_slots == []:
-        start_time = a.start_time
-        end_time = a.end_time
-
-        while start_time != end_time:
-            new_time = timedelta(minutes=15) + start_time
-            new_slot = Slots(date = a.date, start_time = start_time, end_time = new_time, doctor_id = doctor.doctor_id, shift_id = a.id)
-            db.session.add(new_slot)
-            start_time = new_time
-
-db.session.commit()
-'''
-
 doctors = Doctor.query.all()
 for i in range(len(doctors)):
+    # print(i, doctors[i])
     doctor = doctors[i]
+
     # today
     for j in range(2):
         t = random.choice(today_shift)
         today_shift.remove(t)
-        print(doctors[i], t)
+        # print(doctors[i], t)
         if t not in doctor.doctor_shift:
             doctor.doctor_shift.append(t)
 
@@ -100,7 +50,7 @@ for i in range(len(doctors)):
     for k in range(2):
         t2 = random.choice(tomorrow_shift)
         tomorrow_shift.remove(t2)
-        print(doctors[i], t2)
+        # print(doctors[i], t2)
         if t2 not in doctor.doctor_shift:
             doctor.doctor_shift.append(t2)
 
@@ -112,10 +62,11 @@ for i in range(len(doctors)):
         if t3 not in doctor.doctor_shift:
             doctor.doctor_shift.append(t3)
 
-    print()
+    # print()
 
     for a in doctor.doctor_shift:
         check_existing_slots = Slots.query.filter(Slots.shift_id == a.id, Slots.doctor_id == doctor.doctor_id).all()
+        # print(doctor, len(check_existing_slots), a)
         if check_existing_slots == []:
             start_time = a.start_time
             end_time = a.end_time
@@ -130,5 +81,145 @@ for i in range(len(doctors)):
     today_shift = Shift.query.filter(Shift.date == date_today).all()
     tomorrow_shift = Shift.query.filter(Shift.date == next_week_dates[0]).all()
     day_after_tomorrow_shift = Shift.query.filter(Shift.date == next_week_dates[1]).all()
+
+date_today = date.today()
+
+general_doctors = Doctor.query.filter(Doctor.doctor_id.in_([1,2,5,6])).all()
+pediatrics_doctors = Doctor.query.filter(Doctor.doctor_id.in_([3,4])).all()
+
+general_doctor_slots_today = Slots.query.filter(Slots.date == date.today(), Slots.doctor_id.in_([1,2,5,6])).all()
+pediatrics_doctor_slots_today = Slots.query.filter(Slots.date == date.today(), Slots.doctor_id.in_([3,4])).all()
+
+for i in range(50):
+    general_patients = [patient1, patient2, patient3, patient4, patient5, patient6, patient8, patient9]
+    s = random.choice(general_doctor_slots_today)
+    patient = random.choice(general_patients)
+    doctor = random.choice(general_doctors)
+    patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
+                                           Slots.end_time == s.end_time,).all()
+    if patient_available == []:
+        # print(patient, doctor, s, patient_available)
+        s.patient_id = patient.patient_id
+        appointment = Appointment(date = date.today(), start_time = s.start_time, end_time = s.end_time, status = "Booked", 
+                                  doctor_id = doctor.doctor_id, patient_id = patient.patient_id, slot_id = s.id)
+        db.session.add(appointment)
+        general_doctor_slots_today.remove(s)
+        general_patients.remove(patient)
+    else:
+        # print(f"Failed with {doctor} {patient} {s}")
+        pass
+
+for i in range(20):
+    pediatrics_patients = [patient10, patient11, patient12, patient13]
+    s = random.choice(pediatrics_doctor_slots_today)
+    patient = random.choice(pediatrics_patients)
+    doctor = random.choice(pediatrics_doctors)
+    patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
+                                           Slots.end_time == s.end_time,).all()
+    if patient_available == []:
+        # print(patient, doctor, s, patient_available)
+        s.patient_id = patient.patient_id
+        appointment = Appointment(date = date.today(), start_time = s.start_time, end_time = s.end_time, status = "Booked", 
+                                  doctor_id = doctor.doctor_id, patient_id = patient.patient_id, slot_id = s.id)
+        db.session.add(appointment)
+        pediatrics_doctor_slots_today.remove(s)
+        pediatrics_patients.remove(patient)
+    else:
+        # print(f"Failed with {doctor} {patient} {s}")
+        pass
+
+next_week_dates = [(date.today() + timedelta(days = i)) for i in range(1,8)]
+# tomorrow_shift = Slots.query.filter(Slots.date == next_week_dates[0], Slots.doctor_id == doctor.doctor_id).all()
+general_doctor_slots_tomorrow = Slots.query.filter(Slots.date == next_week_dates[0], Slots.doctor_id.in_([1,2,5,6])).all()
+pediatrics_doctor_slots_tomorrow = Slots.query.filter(Slots.date == next_week_dates[0], Slots.doctor_id.in_([3,4])).all()
+
+for i in range(50):
+    general_patients = [patient1, patient2, patient3, patient4, patient5, patient6, patient8, patient9]
+    s = random.choice(general_doctor_slots_tomorrow)
+    patient = random.choice(general_patients)
+    doctor = random.choice(general_doctors)
+    patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
+                                           Slots.end_time == s.end_time,).all()
+    if patient_available == []:
+        # print(patient, doctor, s, patient_available)
+        s.patient_id = patient.patient_id
+        appointment = Appointment(date = next_week_dates[0], start_time = s.start_time, end_time = s.end_time, status = "Booked", 
+                                  doctor_id = doctor.doctor_id, patient_id = patient.patient_id, slot_id = s.id)
+        db.session.add(appointment)
+        general_doctor_slots_tomorrow.remove(s)
+        general_patients.remove(patient)
+    else:
+        # print(f"Failed with {doctor} {patient} {s}")
+        pass
+
+for i in range(20):
+    pediatrics_patients = [patient10, patient11, patient12, patient13]
+    s = random.choice(pediatrics_doctor_slots_tomorrow)
+    patient = random.choice(pediatrics_patients)
+    doctor = random.choice(pediatrics_doctors)
+    patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
+                                           Slots.end_time == s.end_time,).all()
+    if patient_available == []:
+        # print(patient, doctor, s, patient_available)
+        s.patient_id = patient.patient_id
+        appointment = Appointment(date = next_week_dates[0], start_time = s.start_time, end_time = s.end_time, status = "Booked", 
+                                  doctor_id = doctor.doctor_id, patient_id = patient.patient_id, slot_id = s.id)
+        db.session.add(appointment)
+        pediatrics_doctor_slots_tomorrow.remove(s)
+        pediatrics_patients.remove(patient)
+    else:
+        # print(f"Failed with {doctor} {patient} {s}")
+        pass
+
+general_doctor_slots_day_after_tommorow = Slots.query.filter(Slots.date == next_week_dates[1], Slots.doctor_id.in_([1,2,5,6])).all()
+pediatrics_doctor_slots_day_after_tommorow = Slots.query.filter(Slots.date == next_week_dates[1], Slots.doctor_id.in_([3,4])).all()
+
+for i in range(50):
+    general_patients = [patient1, patient2, patient3, patient4, patient5, patient6, patient8, patient9]
+    s = random.choice(general_doctor_slots_day_after_tommorow)
+    patient = random.choice(general_patients)
+    doctor = random.choice(general_doctors)
+    patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
+                                           Slots.end_time == s.end_time,).all()
+    if patient_available == []:
+        # print(patient, doctor, s, patient_available)
+        s.patient_id = patient.patient_id
+        appointment = Appointment(date = next_week_dates[1], start_time = s.start_time, end_time = s.end_time, status = "Booked", 
+                                  doctor_id = doctor.doctor_id, patient_id = patient.patient_id, slot_id = s.id)
+        db.session.add(appointment)
+        general_doctor_slots_day_after_tommorow.remove(s)
+        general_patients.remove(patient)
+    else:
+        # print(f"Failed with {doctor} {patient} {s}")
+        pass
+
+for i in range(20):
+    pediatrics_patients = [patient10, patient11, patient12, patient13]
+    s = random.choice(pediatrics_doctor_slots_day_after_tommorow)
+    patient = random.choice(pediatrics_patients)
+    doctor = random.choice(pediatrics_doctors)
+    patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
+                                           Slots.end_time == s.end_time,).all()
+    if patient_available == []:
+        # print(patient, doctor, s, patient_available)
+        s.patient_id = patient.patient_id
+        appointment = Appointment(date = next_week_dates[1], start_time = s.start_time, end_time = s.end_time, status = "Booked", 
+                                  doctor_id = doctor.doctor_id, patient_id = patient.patient_id, slot_id = s.id)
+        db.session.add(appointment)
+        pediatrics_doctor_slots_day_after_tommorow.remove(s)
+        pediatrics_patients.remove(patient)
+    else:
+        # print(f"Failed with {doctor} {patient} {s}")
+        pass
+
+# delete any clashing appointments
+appts = Appointment.query.filter(Appointment.status == "Booked").all()
+for appt in appts:
+    clashing_appts = Appointment.query.filter(Appointment.status == "Booked", Appointment.appointment_id != appt.appointment_id,
+                                              Appointment.doctor_id == appt.doctor_id, Appointment.start_time == appt.start_time).all()
+    print(clashing_appts)
+    for a in clashing_appts:
+        db.session.delete(a)
+
 db.session.commit()
 

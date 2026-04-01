@@ -7,14 +7,20 @@ from flask_security import auth_required, roles_required, current_user
 from models import *
 from .marshal_fields import user_fields, patient_fields
 
+# Parser for login
+login_parser = reqparse.RequestParser()
+login_parser.add_argument("user_name", type = str, required = True)
+login_parser.add_argument("user_password", type = str, required = True)
+
+# Parser for registering as a patient
 parser = reqparse.RequestParser()
 parser.add_argument("user_name", type = str, required = True)
 parser.add_argument("user_password", type = str, required = True)
-parser.add_argument("email", type = str)
+parser.add_argument("email", type = str, required = True)
 parser.add_argument("contact_number", type = str)
 
 parser.add_argument("patient_id", type = int)
-parser.add_argument("name", type = str)
+parser.add_argument("name", type = str, required = True)
 parser.add_argument("dob", type = str)
 parser.add_argument("gender", type = str)
 parser.add_argument("height", type = str)
@@ -22,7 +28,7 @@ parser.add_argument("weight", type = str)
 
 class LoginResource(Resource):
     def post(self):
-        args = parser.parse_args()
+        args = login_parser.parse_args()
         user_name = args.get("user_name")
         user_password = args.get("user_password")
 
@@ -73,16 +79,22 @@ class RegisterResource(Resource):
             return {'message': 'User Already exists'}, 400
                     
         # add as user
-        user = datastore.create_user(user_name = user_name, user_password = hash_password(user_password), 
-                          contact_number = contact_number, email = email)
-        db.session.add(user)
-        datastore.add_role_to_user(user, 'Patient')
+        if (user_name != "" and user_password != "" and email != ""):
+            user = datastore.create_user(user_name = user_name, user_password = hash_password(user_password), 
+                            contact_number = contact_number, email = email)
+            db.session.add(user)
+            datastore.add_role_to_user(user, 'Patient')
+        else:
+            return {"message": "User name, password and email are required"}, 400
 
         # add as patient
         if dob:
             dob = datetime.strptime(dob, '%Y-%m-%d')
-        patient = Patient(name = name, gender = gender, dob = dob, 
-                                height = height, weight = weight)
-        user.user_patient = patient
-        db.session.commit()
-        return marshal(patient, patient_fields), 201
+        if (name != ""):
+            patient = Patient(name = name, gender = gender, dob = dob, 
+                                    height = height, weight = weight)
+            user.user_patient = patient
+            db.session.commit()
+            return marshal(patient, patient_fields), 201
+        else:
+            return {"message": "Name is required"}, 400   

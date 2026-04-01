@@ -1,13 +1,13 @@
 <template>
     <div class = 'container' v-bind="$attrs">
-        <div class = 'd-flex justify-content-between'>
+        <div class = 'd-flex justify-content-between w-75 mx-auto'>
             <div>
                 <h2>Departments</h2>
             </div>
             
             <div>
                 <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal">
-                    Add
+                    Add Department
                 </button>
 
                 <!-- modal  -->
@@ -16,7 +16,7 @@
         </div>
     </div>
 
-    <div v-if="departments" class="col w-100">     
+    <div v-if="departments" class="col w-75 mx-auto">     
         <div v-for="dept in departments" class = "d-flex flex-column">
                 <!-- <div v-if="dept.doctors.length == 0" class = "w-100 mt-2 d-flex justify-content-center align-items-center" style="height: 50vh;">
                     <p>No doctors to show</p>
@@ -48,9 +48,9 @@
 </template>
 
 <script>
-    import { requestAPI } from '../../utils/api';
+    import { requestAPI } from '../../../utils/api';
 
-    import AddDepartmentModal from './AdminDashComp/AddDepartmentModal.vue';
+    import AddDepartmentModal from './AddDepartmentModal.vue';
 
     export default {
         name: 'AdminDashDept',

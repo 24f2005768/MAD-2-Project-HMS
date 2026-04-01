@@ -7,7 +7,8 @@
         <div v-if="departments" class="col w-100">
             <div class = "d-flex justify-content-between w-75 mx-auto">
                 <div class = "" v-for="dept in departments">
-                    <button :class = "{'btn btn-outline-primary': true, 'active': selectedDept == dept.department_id}" @click="selectedDept = dept.department_id">{{ dept.name }}</button>
+                    <!-- <button :class = "{'btn btn-outline-primary': true, 'active': selectedDept == dept.department_id}" @click="selectedDept = dept.department_id">{{ dept.name }}</button> -->
+                     <a :class = "{'dept-buttons w-100 text-center pb-2': true, 'dept-buttons-active': selectedDept == dept.department_id}" @click="selectedDept = dept.department_id">{{ dept.name }}</a>
                 </div>
             </div>
             <div v-for="dept in departments" class = "d-flex flex-column">
@@ -86,4 +87,15 @@
         transform: translateY(-5px);
         box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175)!important;
     }    
+    .dept-buttons {
+        border-radius: 0;
+        text-decoration: none;
+        cursor: pointer;
+        color: black;
+    }
+    .dept-buttons-active {
+        text-decoration: none;
+        border-bottom: 2px solid orangered !important;
+        cursor: pointer !important;
+    }
 </style>

@@ -26,28 +26,33 @@
                 <div class = "container">
                     <div class = "row">
                         <!-- photo container  -->
-                        <div class = 'col-sm-3 d-flex justify-content-center align-items-center'>
-                            <div class = "d-flex flex-column justify-content-center align-items-center">
-                                <div>
-                                    <img :src="`/images/${patientPfp}.png`" height="200px" width="200px">
+                        <div class = "d-flex justify-content-center align-items-center col-4 gap-3">
+                            <!-- Patient Profile  -->
+                            <div class = 'd-flex justify-content-center align-items-center'>
+                                <div class = "d-flex flex-column justify-content-center align-items-center">
+                                    <div>
+                                        <img :src="`/images/${patientPfp}.png`" height="180px">
+                                    </div>
+                                    <p><strong>Patient: </strong>{{ appointment.app_patient.name }}</p>
                                 </div>
-                                <p><strong>Patient Name: </strong>{{ appointment.app_patient.name }}</p>
                             </div>
+                                      
+                            <!-- Doctor Profile  -->
+                            <div class = 'd-flex justify-content-center align-items-center'>
+                                <div class = "d-flex flex-column justify-content-center align-items-center">
+                                    <div>
+                                        <img :src="`/images/${doctorPfp}.png`" height="180px">
+                                    </div>
+                                    <p><strong>Doctor: </strong>{{ appointment.app_doctor.name }}</p>
+                                </div>
+                            </div>                          
+
                         </div>
 
                         <!-- information container -->
-                        <div class = 'col-9 p-3'>
-                            <div class = "d-flex justify-content-between">
-                                <p><strong>Date: </strong>{{ appointment.date }}</p>
-                                <button v-if="appointment.status == 'Completed'" class = "btn btn-outline-primary" data-bs-toggle = "modal" data-bs-target = "#update-treatment-modal">
-                                    Update Details
-                                </button>
-
-                                <!-- modal  -->
-                                <UpdateTreatmentModal 
-                                :appointment = "appointment"
-                                @update-treatment = "updateTreatmentDetails"/>
-                            </div>
+                        <div class = 'col-6 p-3'>
+                            <p><strong>Appointment ID: </strong>{{ appointment.appointment_id }}</p>
+                            <p><strong>Date: </strong>{{ appointment.date }}</p>
                             <p><strong>Time: </strong>{{ appointment.start_time }} - {{ appointment.end_time }}</p>
 
                             <div v-if="appointment.status == 'Completed'">
@@ -69,7 +74,7 @@
                 </div>
 
                 <!-- Conditional Rendering -->
-                <div class="tab-content d-flex flex-grow-1" id="v-tab-tabContent">
+                <div class="tab-content d-flex flex-grow-1 mt-3" id="v-tab-tabContent">
                     
                     <!-- Upcoming Appointments -->
                     <div class="tab-pane fade show active w-100" id="v-tab-upcoming-appointment" role="tabpanel">
@@ -132,20 +137,18 @@
     import errorToast from '@/components/errorToast.vue';
     import { requestAPI } from '../../../utils/api';
 
-    import UpdateTreatmentModal from '@/components/DoctorDashComp/UpdateTreatmentModal.vue';
-
     export default {
-        name: "DoctorDashViewAppointment",
+        name: "AdminDashViewAppointment",
         data() {
             return {
                 appointment: null,
                 errorMessage: null,
-                patientPfp: null
+                patientPfp: null,
+                doctorPfp: null
             }
         },
         components: {
-            errorToast,
-            UpdateTreatmentModal
+            errorToast
         },
         methods: {
             async get_appointment() {
@@ -153,6 +156,7 @@
                     const apptID = this.$route.params.aid;
                     const display_appointment = await requestAPI("GET", null, `/appointment/${apptID}?all_appointments=true`)
                     this.appointment = display_appointment
+                    this.doctorPfp = display_appointment.app_doctor.pfp
                     this.patientPfp = display_appointment.app_patient.pfp
                 }
                 catch(error) {
@@ -161,16 +165,6 @@
             },
             errorHandler(message) {
                 this.errorMessage = message
-            },
-            async updateTreatmentDetails(data) {
-                try {
-                    console.log(data)
-                    const apptID = this.$route.params.aid;
-                    const update_appointment = await requestAPI("PATCH", data, `/treatment/${apptID}`)
-                }
-                catch(error) {
-                    this.errorHandler(error.message)
-                }
             },
             async cancelAppointment(appointmentID) {
                 try {

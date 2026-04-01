@@ -14,7 +14,7 @@
 
     export default {
         name: 'PatientDashAppointments',
-        emits: ['error'],
+        emits: ['error', 'success'],
         data() {
             return {
                 all_doctors: null

@@ -6,9 +6,9 @@ import random
 from app import *
 from models import *
 
-past_week_dates = []
+past_dates = []
 date_today = date.today()
-past_week_dates = [(date_today + timedelta(days = -i)) for i in range(1,8)]
+past_dates = [(date_today + timedelta(days = -i)) for i in range(1,90)]
 
 datastore = current_app.datastore
 
@@ -162,8 +162,8 @@ time_slots = [
     (22, 0), (22, 15), (22, 30), (22, 45)
 ]
 
-for i in range(30):
-    d = random.choice(past_week_dates)
+for i in range(250):
+    d = random.choice(past_dates)
     hour, minute = random.choice(time_slots)
     start_time = datetime(year=d.year, month=d.month, day=d.day, hour=hour, minute=minute)
     end_time = start_time + timedelta(minutes=15)

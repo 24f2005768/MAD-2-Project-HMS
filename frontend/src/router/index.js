@@ -4,18 +4,19 @@ import HomePage from '@/pages/HomePage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
 
-import AdminDashboard from '@/pages/AdminDashboard.vue'
+import AdminDashboard from '@/pages/AdminDash/AdminDashboard.vue'
 import ViewPatient from '@/pages/AdminDash/ViewPatient.vue'
 import ViewDoctor from '@/pages/AdminDash/ViewDoctor.vue'
 import ViewDepartment from '@/pages/AdminDash/ViewDepartment.vue'
+import AdminDashViewAppointment from '@/pages/AdminDash/AdminDashViewAppointment.vue'
 import search from '@/pages/AdminDash/search.vue'
 
-import DoctorDashboard from '@/pages/DoctorDashboard.vue'
+import DoctorDashboard from '@/pages/DoctorDash/DoctorDashboard.vue'
 import DoctorDashViewPatient from '@/pages/DoctorDash/DoctorDashViewPatient.vue'
 import DoctorDashViewAppointment from '@/pages/DoctorDash/DoctorDashViewAppointment.vue'
 import DoctorSearch from '@/pages/DoctorDash/DoctorSearch.vue'
 
-import PatientDashboard from '@/pages/PatientDashboard.vue'
+import PatientDashboard from '@/pages/PatientDash/PatientDashboard.vue'
 import PatientDashViewDoctor from '@/pages/PatientDash/PatientDashViewDoctor.vue'
 import PatientDashViewDepartment from '@/pages/PatientDash/PatientDashViewDepartment.vue'
 import PatientDashViewAppointment from '@/pages/PatientDash/PatientDashViewAppointment.vue'
@@ -35,6 +36,7 @@ const router = createRouter({
     {path: '/admin/doctor/:did', component: ViewDoctor},
     {path: '/admin/dept/:deptId', component: ViewDepartment},
     {path: '/admin/search/:query', component: search},
+    {path: '/admin/appointment/:aid', component: AdminDashViewAppointment},
 
     {path: '/doctor', component: DoctorDashboard},
     {path: '/doctor/patient/:pid', component: DoctorDashViewPatient},

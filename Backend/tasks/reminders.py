@@ -7,7 +7,7 @@ sys.path.append(str(backend_dir))
 from models import *
 
 from celery import shared_task
-from datetime import date, timedelta, time
+from datetime import date, timedelta, time, datetime
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -70,38 +70,55 @@ def patient_daily_reminders():
 
 
 @shared_task
-def treatment_history_patients():
-    date_today = date.today()
-    patients = Patient.query.all()
+def treatment_history_patient(patient_id):
+    now = datetime.now()
+    patient = Patient.query.filter(Patient.patient_id == patient_id).first()
 
     reports_folder = Path(__file__).parent.parent / "reports"  # Backend/reports
     
-    for patient in patients:
-        filename = f"{patient.name}_treatment_history.csv"
-        with open(reports_folder/filename, "w", newline="") as file:
-            writer = csv.writer(file)    
+    filename = f"{patient.name}_treatment_history.csv"
+    with open(reports_folder/filename, "w", newline="") as file:
+        writer = csv.writer(file)    
 
-            # header 
-            writer.writerow(["Date", "Doctor", "Department", "Start Time", "End Time", "Status"])
+        # header 
+        writer.writerow(["Date", "Doctor", "Department", "Start Time", "End Time", "Status", "Diagnosis", "Notes", "Prescription", "Tests"])
 
-            appointments = Appointment.query.filter(Appointment.patient_id == patient.patient_id).all()
+        appointments = Appointment.query.filter(Appointment.patient_id == patient.patient_id).all()
 
-            for appt in appointments:
+        for appt in appointments:
+            if appt.status == "Completed":
                 writer.writerow([appt.date, 
-                                 appt.app_doctor.name,
-                                 appt.app_doctor.dept.name,
-                                 appt.start_time,
-                                 appt.end_time,
-                                 appt.status])
-                
-        send_email(
-                patient.patient_user.email,
-                f"Monthly Report - {date_today.strftime('%B %Y')}",
-                f"""Dear {patient.name},
-                    <br><br>Please find your monthly report attached.
-                    <br><br>Thank you,<br>LDH Hospital""",
-                filename
-            ) 
+                                    appt.app_doctor.name,
+                                    appt.app_doctor.dept.name,
+                                    appt.start_time,
+                                    appt.end_time,
+                                    appt.status,
+                                    appt.app_t.diagnosis,
+                                    appt.app_t.notes,
+                                    appt.app_t.prescription,
+                                    appt.app_t.notes])
+            else:
+                writer.writerow([appt.date, 
+                                    appt.app_doctor.name,
+                                    appt.app_doctor.dept.name,
+                                    appt.start_time,
+                                    appt.end_time,
+                                    appt.status,
+                                    "--",
+                                    "--",
+                                    "--",
+                                    "--"])
+
+    # Path to treatment_history.html
+    script_dir = Path(__file__).parent
+    template_path = script_dir / "treatment_history.html"
+
+    with open(template_path) as t:
+        template = Template(t.read())    
+    
+    message = template.render(patient = patient, now = now)
+    send_email(
+            patient.patient_user.email, "Treatment History Report", message, filename) 
 
     return filename
 

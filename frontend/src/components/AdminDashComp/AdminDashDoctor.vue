@@ -1,31 +1,33 @@
 <template>
     <div class = "container" v-bind="$attrs">
-        <div class = "d-flex justify-content-between">
+        <div class = "d-flex justify-content-between w-75 mx-auto mb-3">
             <h2 class = "">Doctors</h2>
 
             <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
-                Add
+                Add Doctor
             </button>
 
             <!-- modal  -->
              <AddDoctorModal @form-add-doctor = "AddDoctor"/>
         </div>
 
-        <div v-if="departments" class="col w-100">
-            <div class = "d-flex justify-content-between w-75 mx-auto">
-                <div class = "" v-for="dept in departments">
-                    <button :class = "{'btn btn-outline-primary': true, 'active': selectedDept == dept.department_id}" @click="selectedDept = dept.department_id">{{ dept.name }}</button>
+        <div v-if="departments" class="col w-75 mx-auto">
+            <div class = "d-flex justify-content-evenly flex-wrap">
+                <div class="d-flex flex-grow-1" v-for="dept in departments">
+                    <a :class = "{'dept-buttons w-100 text-center pb-2': true, 'dept-buttons-active': selectedDept == dept.department_id}" @click="selectedDept = dept.department_id">{{ dept.name }}</a>
                 </div>
             </div>
-            <div v-for="dept in departments" class = "d-flex flex-column">
-                    <div v-if="selectedDept == dept.department_id" class = "">
+
+            <div v-for="dept in departments" class = "d-flex flex-column w-100">
+                <div v-if="selectedDept == dept.department_id">
                     <div v-if="dept.doctors.length == 0" class = "w-100 mt-2 d-flex justify-content-center align-items-center" style="height: 50vh;">
                         <p>No doctors to show</p>
                     </div>
-                    <div v-else v-for="doctor in dept.doctors" class = "px-5 m-3">
-                        <!-- {{ doctor }} -->
+                    
+                    <div v-else v-for="doctor in dept.doctors">
+
                         <!-- card for each doctor  -->
-                        <div class = "card d-flex flex-row w-100 h-auto shadow-sm hover-shadow m-2" v-if="selectedDept == doctor.dept.department_id">
+                        <div class = "card d-flex flex-row w-100 h-auto shadow-sm hover-shadow mb-2 mt-2" v-if="selectedDept == doctor.dept.department_id">
                             <!-- photo container  -->
                             <div class = "col-3 d-flex flex-column justify-content-center align-items-center">
                                 <div class = "mt-2">
@@ -33,7 +35,7 @@
                                 </div>
         
                                 <div>
-                                    <p><strong>Dr. {{ doctor.name }}</strong></p>
+                                    <p><strong><RouterLink :to = "`/admin/doctor/${doctor.doctor_id}`">Dr. {{ doctor.name }}</RouterLink></strong></p>
                                 </div>
                             </div>
         
@@ -56,8 +58,9 @@
 
 
 <script>
-    import { requestAPI } from '../../utils/api';
-    import AddDoctorModal from './AdminDashComp/AddDoctorModal.vue';
+    import { requestAPI } from '../../../utils/api';
+    
+    import AddDoctorModal from './AddDoctorModal.vue';
 
     export default {
         name: 'AdminDashDoctor',
@@ -98,3 +101,17 @@
         }
     }
 </script>
+
+<style scoped>
+    .dept-buttons {
+        border-radius: 0;
+        text-decoration: none;
+        cursor: pointer;
+        color: black;
+    }
+    .dept-buttons-active {
+        text-decoration: none;
+        border-bottom: 2px solid orangered !important;
+        cursor: pointer !important;
+    }
+</style>

@@ -20,16 +20,6 @@ app.config["CACHE_TYPE"] = "RedisCache"
 app.config["CACHE_DEFAULT_TIMEOUT"] = 60
 cache.init_app(app)
 
-# testing cache
-
-from datetime import timezone
-import datetime
-
-@app.route('/cache')
-@cache.cached()
-def cache():
-    return {"date" : str(datetime.datetime.now(timezone.utc))}
-
 # celery
 
 def celery_init_app(app: Flask) -> Celery:
@@ -50,17 +40,6 @@ app.config.from_mapping(
     ),
 )
 celery_app = celery_init_app(app)
-
-# testing celery
-
-from tasks.test import add
-
-@app.route("/celery-task")
-def task():
-    # result = add.delay(1,2)
-    result = reminders.monthly_report_doctors.delay()
-    return {"message": "task started", "result": result.ready()}
-
 
 @app.route("/reminders/patients")
 def get_report():

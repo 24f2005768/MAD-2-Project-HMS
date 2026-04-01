@@ -150,7 +150,16 @@
             },
             errorHandler(message) {
                 this.errorMessage = message
-            }
+            },
+            async cancelAppointment(appointmentID) {
+                try {
+                    const cancel_appointment = await requestAPI("PATCH", null, `/cancel-appointment/${appointmentID}`)
+                    this.get_appointment()
+                }
+                catch(error) {
+                    this.$emit("error", error.message)
+                }
+            },
         },
         mounted() {
             this.get_appointment()

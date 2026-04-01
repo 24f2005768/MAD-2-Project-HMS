@@ -14,9 +14,6 @@
                 <button type = "button" class="btn btn-outline-secondary" onclick = 'history.back()'>Go Back</button>
             </div>
 
-            <!-- {{ patients }} -->
-            <!-- <h4>GHI</h4>
-            {{ doctors }} -->
             <div class = 'col w-75 mx-auto'>
                 <!-- Conditional Rendering -->
                 <div class="tab-content d-flex flex-grow-1" id="v-tab-tabContent">

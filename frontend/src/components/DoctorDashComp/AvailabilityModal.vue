@@ -96,8 +96,6 @@
     .disable-cancel {
         background-color: blueviolet !important;
     }
-    .active {
-    }
 </style>
 
 

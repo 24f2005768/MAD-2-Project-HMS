@@ -3,8 +3,12 @@
         <div class = 'container'>
             <div class = 'col'>
                 <div class="nav nav-tab me-3 my-auto d-flex align-items-center justify-content-center" id="v-tab-tab" role="tablist" aria-orientation="vertical">
-                    <button class="nav-link active" id="v-tab-home-tab" data-bs-toggle="pill" data-bs-target="#v-tab-home" type="button" role="tab">Upcoming Appointments</button>
-                    <button class="nav-link" id="v-tab-profile-tab" data-bs-toggle="pill" data-bs-target="#v-tab-profile" type="button" role="tab">Past Appointments</button>
+                    <button class="nav-link active" id="v-tab-home-tab" data-bs-toggle="pill" data-bs-target="#v-tab-home" type="button" role="tab">
+                        Upcoming Appointments
+                    </button>
+                    <button class="nav-link" id="v-tab-profile-tab" data-bs-toggle="pill" data-bs-target="#v-tab-profile" type="button" role="tab">
+                        Past Appointments
+                    </button>
                 </div>                
             </div>
 
@@ -14,16 +18,22 @@
                         <h2>Patient Profile</h2>
 
                         <div class = "d-flex gap-1">
-                            
-                            <button class = "btn btn-primary">
+                            <button class = "btn btn-outline-danger" v-show = "blacklist_button" v-on:click="changeBlacklistStatus">
                                 Blacklist
                             </button>
+
+                            <button class = "btn btn-outline-danger" v-show = "undo_blacklist_button" v-on:click="changeBlacklistStatus">
+                                Undo Blacklist
+                            </button>
+                            <!-- <button class = "btn btn-outline-danger">
+                                Blacklist
+                            </button> -->
                             
-                            <button class = "btn btn-primary" type = "button" data-bs-toggle = "modal" data-bs-target = "#update-patient-modal">
+                            <button class = "btn btn-outline-secondary" type = "button" data-bs-toggle = "modal" data-bs-target = "#update-patient-modal">
                                 Update
                             </button>
 
-                            <button class = "btn btn-primary" v-on:click="deletePatient">
+                            <button class = "btn btn-outline-primary" v-on:click="deletePatient">
                                 Delete
                             </button>
                         </div>
@@ -90,12 +100,13 @@
                 <!-- Always visible -->
                  <div class = 'container'>
                     <div class = 'row'>
-                        <div class = 'col-sm-3'>
+                        <div class = 'col-sm-3 text-center'>
                             <img :src="`/images/${patient.pfp}.png`" height="200px" width="200px">
+                            <p><strong>Name: </strong>{{ patient.name }}</p>
                         </div>
                         
                         <div class = 'col'>
-                            <p><strong>Name: </strong>{{ patient.name }}</p>
+                            <h3 v-show = "blacklist_status">This user is currently blacklisted</h3>
                             <p><strong>Patient ID: </strong> {{ patient.patient_id }}</p>
                             <p><strong>Gender: </strong>{{ patient.gender }}</p>
                             <p><strong>DOB: </strong>{{ patient.dob }}</p>
@@ -111,34 +122,76 @@
                     
                     <!-- Upcoming Appointments -->
                     <div class="tab-pane fade show active w-100" id="v-tab-home" role="tabpanel">
-                        <h3>Upcoming Appointments</h3>
-                        <div v-if = "ua">
-                            <ol>
-                                <li v-for = "a in patient.upcoming_appointment">
-                                    <p><strong>Appointment ID:</strong> {{ a.appointment_id }}</p>
-                                    <p><strong>Date:</strong> {{ a.date }}</p>
-                                    <p><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
-                                    <p><strong>Doctor:</strong> {{ a.app_doctor.name }}</p>
-                                </li>
-                            </ol>                            
+                        <h3 class = "mt-3">Upcoming Appointments</h3>
+                        <div v-if="patient.upcoming_appointment.length != 0" class = "d-flex justify-content-start flex-wrap  gap-2">
+                            <!-- Today's appointments  -->
+                            <div v-for="a in patient.today_appointment">
+                                <div class="card" style="min-height: 220px; max-width: 222px;">
+                                    <div class="card-body">
+                                        <h5 class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</h5>  
+                                        <div class = "border-top">
+                                            <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
+                                            <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
+
+                                            <div v-if="a.status == 'Booked'">
+                                                <div class = "d-flex gap-2 mt-2">
+                                                    <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">Cancel</button>
+                                                    <button class = "btn btn-outline-primary">Reschedule</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upcoming Appointments  -->
+                            <div v-for="a in patient.upcoming_appointment">
+                                <div class="card" style="min-height: 220px; max-width: 222px;">
+                                    <div class="card-body">
+                                        <h5 class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</h5>  
+                                        <div class = "border-top">
+                                            <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
+                                            <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
+
+                                            <div v-if="a.status == 'Booked'">
+                                                <div class = "d-flex gap-2 mt-2">
+                                                    <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">Cancel</button>
+                                                    <button class = "btn btn-outline-primary">Reschedule</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <p v-else>No upcoming appointments to show</p>
+
+                        <div v-else>
+                            <p>No upcoming appointments to show</p>
+                        </div>
                     </div>
 
                     <!-- Past Appointments  -->
                     <div class="tab-pane fade w-100" id="v-tab-profile" role="tabpanel">
-                        <h3>Past Appointments</h3>
-                        <div v-if = "pa">
-                            <ol>
-                                <li v-for = "a in patient.past_appointment">
-                                    <p><strong>Appointment ID:</strong> {{ a.appointment_id }}</p>
-                                    <p><strong>Date:</strong> {{ a.date }}</p>
-                                    <p><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
-                                    <p><strong>Patient:</strong> {{ a.app_doctor.name }}</p>
-                                </li>
-                            </ol>                            
+                        <h3 class = "mt-3">Past Appointments</h3>
+
+                        <div v-if="patient.past_appointment.length != 0" class = "d-flex justify-content-start flex-wrap  gap-2">
+                            <div v-for="a in patient.past_appointment">
+                                <div class="card" style="min-height: 220px; max-width: 222px;">
+                                    <div class="card-body">
+                                        <h5 class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</h5> 
+                                        <div class = "border-top">
+                                            <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
+                                            <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
+                                            <button class = "btn btn-outline-secondary">View Details</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <p v-else>No past appointments to show</p>
+                        
+                        <div v-else>
+                            <p>No past appointments to show</p>
+                        </div>
                     </div>
 
                 </div>
@@ -155,31 +208,34 @@
         data() {
             return {
                 patient: null,
-                ua: false,
-                pa: false,
                 name: null,
                 gender: null,
                 dob: null,
                 contact_number: null, 
-                email: null
-
+                email: null,
+                blacklist_status: null,
+                blacklist_button: null,
+                undo_blacklist_button: null
             }
         },
         methods: {
             async getPatient() {
                 try {
                     const patientID = this.$route.params.pid;
-                    const display_patient = await requestAPI('GET', null, `/patient/${patientID}?past_appointment=true&upcoming_appointment=true`)
+                    const display_patient = await requestAPI('GET', null, `/patient/${patientID}?past_appointment=true&upcoming_appointment=true&today_appointment=true`)
                     this.patient = display_patient
 
-                    // check if there are any upcoming appointments
-                    if (this.patient.upcoming_appointment.length != 0) {
-                        this.ua = true
+                     // if the patient is blacklisted, show the undo_blacklist_button
+                    if (this.patient.patient_user.blacklisted == true) {
+                        this.blacklist_status = true
+                        this.blacklist_button = false
+                        this.undo_blacklist_button = true
                     }
-
-                    // check if there are any past appointments
-                    if (this.patient.past_appointment.length != 0) {
-                        this.pa = true
+                    // if the patient is not blacklisted, show the blacklist_button
+                    else {
+                        this.blacklist_status = false
+                        this.blacklist_button = true
+                        this.undo_blacklist_button = false
                     }
                 }
                 catch(error) {
@@ -214,6 +270,20 @@
                 catch(error) {
                     console.error('Error deleting patient:', error)
                 }
+            },
+            async changeBlacklistStatus() {
+                try {
+                    const patientID = this.$route.params.pid;
+                    const data = {
+                        blacklist: this.patient.patient_user.blacklisted
+                    }
+                    console.log(data)
+                    const changestatus = await requestAPI("PATCH", data, `/patient/${patientID}`)
+                    this.getPatient()
+                }
+                catch(error) {
+                    console.error("Error blacklisting patient:", error)
+                }
             }
         },
         mounted() {
@@ -221,3 +291,9 @@
         }
     }
 </script>
+
+<style scoped>
+    .nav-tab .nav-link.active {
+        border-bottom: 2px solid orangered !important;
+    }
+</style>
