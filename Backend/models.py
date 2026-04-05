@@ -69,7 +69,7 @@ class Patient(db.Model):
 
     # oneToMany relationship with Slots
     patient_slots = db.relationship('Slots', back_populates = 'slots_patient')
-    patient_app = db.relationship('Appointment', back_populates = 'app_patient', uselist = False)
+    patient_app = db.relationship('Appointment', back_populates = 'app_patient')
     patient_pfp = db.relationship('ProfilePictures', back_populates = 'pfp_patient')
 
     def get_age(self):

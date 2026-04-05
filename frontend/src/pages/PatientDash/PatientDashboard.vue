@@ -36,7 +36,7 @@
 
                     <!-- Stats -->
                     <div class="tab-pane fade w-100" id="v-tab-stats" role="tabpanel">
-                        Second v-show="tabshown == 'stats'" 
+                        <PatientDashCharts @error = "errorHandler"/>
                     </div>
 
                     <!-- Patients  -->
@@ -61,6 +61,7 @@
     import PatientProfile from '@/components/PatientDashComp/PatientProfile.vue';
     import PatientDashDoctors from '@/components/PatientDashComp/PatientDashDoctors.vue';
     import PatientDashAppointments from '@/components/PatientDashComp/PatientDashAppointments.vue';
+    import PatientDashCharts from '@/components/PatientDashComp/PatientDashCharts.vue';
     
     export default {
         name: 'PatientDash',
@@ -76,7 +77,8 @@
             successToast,
             PatientProfile,
             PatientDashDoctors,
-            PatientDashAppointments
+            PatientDashAppointments,
+            PatientDashCharts
         },
         methods: {
             errorHandler(message) {

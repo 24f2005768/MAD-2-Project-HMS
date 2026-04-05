@@ -4,6 +4,7 @@ from sqlalchemy import or_, desc
 from flask_security import auth_required, roles_required, current_user
 
 from models import *
+from caching_config import *
 from .marshal_fields import *
 
 # parser for GET requests
@@ -13,6 +14,7 @@ get_parser.add_argument("query", type = str, location = "args")
 class AdminSearch(Resource):
     @auth_required("token")
     @roles_required("Admin")
+    @cache.cached(key_prefix='admin_search', query_string=True)
     def get(self):
         args = get_parser.parse_args()
         search_query = args.get("query")
@@ -59,6 +61,7 @@ class AdminSearch(Resource):
 class DoctorSearch(Resource):
     @auth_required("token")
     @roles_required("Doctor")
+    @cache.cached(key_prefix = 'doctor_search', query_string = True)
     def get(self):
         args = get_parser.parse_args()
         search_query = args.get("query")
@@ -144,6 +147,7 @@ class DoctorSearch(Resource):
 class PatientSearch(Resource):
     @auth_required("token")
     @roles_required("Patient")
+    @cache.cached(key_prefix = 'patient_search', query_string = True)
     def get(self):
         args = get_parser.parse_args()
         search_query = args.get("query")

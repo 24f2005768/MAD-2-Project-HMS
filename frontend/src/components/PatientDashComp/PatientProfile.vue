@@ -81,9 +81,16 @@
                                             Cancel
                                         </button>
 
-                                        <button class = "btn btn-outline-primary">
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" :data-bs-target="`#rescheduleAppointment-${a.appointment_id}`">
                                             Reschedule
-                                        </button>
+                                        </button>    
+                                        
+                                        <!-- modal  -->
+                                        <RescheduleAppointmentModal 
+                                        :doctor_id = "a.app_doctor.doctor_id"
+                                        :appointment_id = "a.appointment_id"
+                                        @success="handleModalSuccess"
+                                        @error="handleModalError"/>
                                     </div>
                                 </div>
 
@@ -109,6 +116,7 @@
     import { useUserStore } from '@/stores/userStore';
 
     import PatientProfileUpdateModal from './PatientProfileUpdateModal.vue';
+    import RescheduleAppointmentModal from './RescheduleAppointmentModal.vue';
 
     export default {
         name: "PatientProfile",
@@ -117,14 +125,13 @@
             return {
                 store: useUserStore(),
                 patient: null,
-                // errorMessage: "",
                 collapseProfile: true,
                 selected_appt: null,
-                // successMessage: ""
             }
         },
         components: {
-            PatientProfileUpdateModal
+            PatientProfileUpdateModal,
+            RescheduleAppointmentModal
         },
         methods: {
             async getPatient() {
@@ -175,7 +182,14 @@
                 catch(error) {
                     this.$emit('error', error.message)
                 }
-            }
+            },
+            handleModalError(message) {
+                this.$emit('error', message);
+            },
+            handleModalSuccess(message) {
+                this.getPatient()
+                this.$emit('success', message);
+            },
         },
         mounted() {
             this.getPatient()

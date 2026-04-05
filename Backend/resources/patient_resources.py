@@ -4,6 +4,7 @@ from flask_restful import Resource, marshal, reqparse
 from flask_security import auth_required, roles_required, current_user, hash_password
 
 from models import *
+from caching_config import *
 from .marshal_fields import patient_fields, appointment_fields
 from tasks import reminders
 
@@ -13,8 +14,23 @@ get_parser.add_argument('past_appointment', type = str, location = 'args')
 get_parser.add_argument('upcoming_appointment', type = str, location = 'args')
 get_parser.add_argument('today_appointment', type = str, location = 'args')
 
+# cache key for patients
+def make_patient_cache_key(self, patient_id):
+    # Get user role
+    user_role = current_user.roles[0].name
+    
+    # Get query parameters
+    args = get_parser.parse_args()
+    flag1 = args.get('upcoming_appointment')
+    flag2 = args.get('past_appointment')
+    flag3 = args.get('today_appointment')
+    
+    # Create cache key
+    return f"patient_{patient_id}_cached_for_user_{current_user.user_id}_{user_role}_upcoming_{flag1}_past_{flag2}__today_{flag3}"
+
 class PatientResources(Resource):
     @auth_required("token")
+    @cache.cached(make_cache_key = make_patient_cache_key)
     def get(self, patient_id):
         patient = Patient.query.filter(Patient.patient_id == patient_id).first()
         if not patient:
@@ -66,6 +82,10 @@ class PatientResources(Resource):
     @roles_required("Admin")
     def delete(self, patient_id):
         patient = Patient.query.filter(Patient.patient_id == patient_id).first()
+        
+        # Clear cache for this specific patient and all patients list
+        invalidate_patient_caches(patient_id)
+
         if patient:
             db.session.delete(patient)
             db.session.commit()
@@ -80,7 +100,6 @@ class PatientResources(Resource):
                 return {"message": "Patient does not exist"}, 404
             
             data = request.get_json()
-            print(data)
             for key in data:
                 # check if DOB is updated
                 if key == 'dob' and data[key]:
@@ -123,7 +142,10 @@ class PatientResources(Resource):
                 else:
                     # for Patient table related values
                     setattr(patient, key, data[key])
-
+            
+            # Clear cache for this specific patient and all patients list
+            invalidate_patient_caches(patient_id)
+            
             db.session.commit()
             return marshal(patient, patient_fields)
         else:
@@ -131,6 +153,7 @@ class PatientResources(Resource):
         
 class AllPatientResources(Resource):
     @auth_required("token")
+    @cache.memoize(args_to_ignore=["self"])
     def get(self):
         all_patients = Patient.query.all()
         return marshal(all_patients, patient_fields), 200

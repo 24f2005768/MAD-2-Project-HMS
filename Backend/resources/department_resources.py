@@ -4,7 +4,7 @@ from datetime import date
 from flask_security import auth_required, roles_required, current_user
 
 from models import *
-from caching_config import cache
+from caching_config import *
 from .marshal_fields import department_fields, appointment_fields
 
 # parser for GET requests
@@ -17,6 +17,7 @@ parser = reqparse.RequestParser()
 parser.add_argument("name", type = str, required = True)
 parser.add_argument("description", type = str)
 
+# cache key for departments
 def make_dept_cache_key(self, dept_id):
     # Get user role
     user_role = current_user.roles[0].name
@@ -27,7 +28,7 @@ def make_dept_cache_key(self, dept_id):
     flag2 = args.get('past_appointment')
     
     # Create cache key
-    return f"dept_{dept_id}_user_{current_user.user_id}_{user_role}_upcoming_{flag1}_past_{flag2}"
+    return f"dept_{dept_id}_cached_for_user_{current_user.user_id}_{user_role}_upcoming_{flag1}_past_{flag2}"
 
 class DepartmentResources(Resource):
     @auth_required("token")
@@ -47,7 +48,7 @@ class DepartmentResources(Resource):
         db.session.commit()
 
         # Clear cache for all departments
-        cache.delete_memoized(AllDepartmentResources.get) 
+        invalidate_department_caches()
 
         return marshal(dept, department_fields), 200
     
@@ -102,8 +103,7 @@ class DepartmentResources(Resource):
             db.session.commit()
 
             # Clear cache for this specific department and all departments list
-            cache.delete_memoized(DepartmentResources.get, dept_id)
-            cache.delete_memoized(AllDepartmentResources.get)  
+            invalidate_department_caches(dept_id)
                       
             return {"message": "Department deleted successfully"}, 200
         return {"message": "Department does not exist"}, 404
@@ -121,8 +121,7 @@ class DepartmentResources(Resource):
         db.session.commit() 
 
         # Clear cache for this department and all departments list
-        cache.delete_memoized(DepartmentResources.get, dept_id)
-        cache.delete_memoized(AllDepartmentResources.get) 
+        invalidate_department_caches(dept_id)
 
         return marshal(dept, department_fields), 200      
 

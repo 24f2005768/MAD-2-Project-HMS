@@ -5,6 +5,7 @@ from flask_restful import Resource, marshal, reqparse
 from flask_security import auth_required, roles_required, current_user
 
 from models import *
+from caching_config import *
 from .marshal_fields import user_fields, patient_fields
 
 # Parser for login
@@ -45,6 +46,7 @@ class LoginResource(Resource):
         # Add role-specific IDs
         if user.role() == 'Doctor' and user.user_doctor:
             response_data["doctor_id"] = user.user_doctor.doctor_id
+
         elif user.role() == 'Patient' and user.user_patient:
             response_data["patient_id"] = user.user_patient.patient_id
             
@@ -95,6 +97,9 @@ class RegisterResource(Resource):
                                     height = height, weight = weight)
             user.user_patient = patient
             db.session.commit()
+
+            # clear cache 
+            invalidate_patient_caches()
             return marshal(patient, patient_fields), 201
         else:
             return {"message": "Name is required"}, 400   

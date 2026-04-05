@@ -58,7 +58,7 @@ for i in range(len(doctors)):
     for l in range(2):
         t3 = random.choice(day_after_tomorrow_shift)
         day_after_tomorrow_shift.remove(t3)
-        print(doctors[i], t3)
+        # print(doctors[i], t3)
         if t3 not in doctor.doctor_shift:
             doctor.doctor_shift.append(t3)
 
@@ -84,6 +84,8 @@ for i in range(len(doctors)):
 
 date_today = date.today()
 
+# --------------------------------------------------------------- Book Appointments ------------------------------------------------------------------------------
+
 general_doctors = Doctor.query.filter(Doctor.doctor_id.in_([1,2,5,6])).all()
 pediatrics_doctors = Doctor.query.filter(Doctor.doctor_id.in_([3,4])).all()
 
@@ -94,7 +96,9 @@ for i in range(50):
     general_patients = [patient1, patient2, patient3, patient4, patient5, patient6, patient8, patient9]
     s = random.choice(general_doctor_slots_today)
     patient = random.choice(general_patients)
-    doctor = random.choice(general_doctors)
+    doctor = db.get_or_404(Doctor, s.doctor_id)
+    # print(s.doctor_id)
+    # print(doctor)
     patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
                                            Slots.end_time == s.end_time,).all()
     if patient_available == []:
@@ -113,7 +117,7 @@ for i in range(20):
     pediatrics_patients = [patient10, patient11, patient12, patient13]
     s = random.choice(pediatrics_doctor_slots_today)
     patient = random.choice(pediatrics_patients)
-    doctor = random.choice(pediatrics_doctors)
+    doctor = db.get_or_404(Doctor, s.doctor_id)
     patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
                                            Slots.end_time == s.end_time,).all()
     if patient_available == []:
@@ -137,7 +141,7 @@ for i in range(50):
     general_patients = [patient1, patient2, patient3, patient4, patient5, patient6, patient8, patient9]
     s = random.choice(general_doctor_slots_tomorrow)
     patient = random.choice(general_patients)
-    doctor = random.choice(general_doctors)
+    doctor = db.get_or_404(Doctor, s.doctor_id)
     patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
                                            Slots.end_time == s.end_time,).all()
     if patient_available == []:
@@ -156,7 +160,7 @@ for i in range(20):
     pediatrics_patients = [patient10, patient11, patient12, patient13]
     s = random.choice(pediatrics_doctor_slots_tomorrow)
     patient = random.choice(pediatrics_patients)
-    doctor = random.choice(pediatrics_doctors)
+    doctor = db.get_or_404(Doctor, s.doctor_id)
     patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
                                            Slots.end_time == s.end_time,).all()
     if patient_available == []:
@@ -178,7 +182,7 @@ for i in range(50):
     general_patients = [patient1, patient2, patient3, patient4, patient5, patient6, patient8, patient9]
     s = random.choice(general_doctor_slots_day_after_tommorow)
     patient = random.choice(general_patients)
-    doctor = random.choice(general_doctors)
+    doctor = db.get_or_404(Doctor, s.doctor_id)
     patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
                                            Slots.end_time == s.end_time,).all()
     if patient_available == []:
@@ -197,7 +201,7 @@ for i in range(20):
     pediatrics_patients = [patient10, patient11, patient12, patient13]
     s = random.choice(pediatrics_doctor_slots_day_after_tommorow)
     patient = random.choice(pediatrics_patients)
-    doctor = random.choice(pediatrics_doctors)
+    doctor = db.get_or_404(Doctor, s.doctor_id)
     patient_available = Slots.query.filter(Slots.patient_id == patient.patient_id, Slots.start_time == s.start_time, 
                                            Slots.end_time == s.end_time,).all()
     if patient_available == []:
@@ -217,7 +221,7 @@ appts = Appointment.query.filter(Appointment.status == "Booked").all()
 for appt in appts:
     clashing_appts = Appointment.query.filter(Appointment.status == "Booked", Appointment.appointment_id != appt.appointment_id,
                                               Appointment.doctor_id == appt.doctor_id, Appointment.start_time == appt.start_time).all()
-    print(clashing_appts)
+    # print(clashing_appts)
     for a in clashing_appts:
         db.session.delete(a)
 

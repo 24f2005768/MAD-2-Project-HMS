@@ -84,8 +84,12 @@ appointment_fields = {
     "start_time": TimeField,
     "end_time": TimeField,
     "status": fields.String,
-    "app_doctor": fields.Nested({'name': fields.String, 'pfp': fields.String}),
-    "app_patient": fields.Nested({'name': fields.String, 'pfp': fields.String}),
+    "app_doctor": fields.Nested({'doctor_id': fields.Integer,
+                                 'name': fields.String, 
+                                 'pfp': fields.String}),
+    "app_patient": fields.Nested({'patient_id': fields.Integer,
+                                  'name': fields.String, 
+                                  'pfp': fields.String}),
     "app_t": fields.Nested(treatment_fields)
 }
 

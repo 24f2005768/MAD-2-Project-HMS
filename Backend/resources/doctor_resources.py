@@ -6,7 +6,7 @@ from flask_restful import Resource, marshal, reqparse
 from sqlalchemy import desc
 
 from models import *
-from caching_config import cache
+from caching_config import *
 from .marshal_fields import doctor_fields, appointment_fields, shift_fields, patient_fields
 
 # parser for GET requests (Doctor)
@@ -32,6 +32,27 @@ parser.add_argument("description", type = str)
 parser.add_argument("gender", type = str)
 parser.add_argument("status", type = str)
 parser.add_argument("department", type = int, required = True)
+
+# cache key for doctors
+def make_doctor_cache_key(self, doctor_id):
+    # Get user role
+    user_role = current_user.roles[0].name
+    
+    # Get query parameters
+    args = get_parser.parse_args()
+    flag1 = args.get('upcoming_appointment')
+    flag2 = args.get('past_appointment')
+    flag3 = args.get('availability')
+    flag4 = args.get('today_appointment')
+    flag5 = args.get('patients')
+    
+    # Create cache key
+    return f"doctor_{doctor_id}_cached_for_user_{current_user.user_id}_{user_role}_upcoming_{flag1}_past_{flag2}_availability_{flag3}_today_{flag4}_patients_{flag5}"
+
+# cache key for appointments of a particular doctor
+def make_appointments_cache_key(doctor_id):
+    user_role = current_user.roles[0].name 
+    return f"doctor_appointments_{doctor_id}_user_{current_user.user_id}_{user_role}"
 
 class DoctorResources(Resource):
     @auth_required("token")
@@ -90,11 +111,13 @@ class DoctorResources(Resource):
         
         db.session.commit()
 
-        cache.delete_memoized(AllDoctorResources.get)
+        # Clear cache for all doctors list
+        invalidate_doctor_caches()
+
         return marshal(doctor, doctor_fields), 201
     
     @auth_required("token")
-    @cache.memoize()
+    @cache.cached(make_cache_key = make_doctor_cache_key)
     def get(self, doctor_id):
 
         doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
@@ -204,6 +227,10 @@ class DoctorResources(Resource):
     @roles_required("Admin")
     def delete(self, doctor_id):
         doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
+
+        # Clear cache for this specific doctor and all doctors list
+        invalidate_doctor_caches(doctor_id)
+
         if doctor:
             db.session.delete(doctor)
             db.session.commit()
@@ -260,6 +287,10 @@ class DoctorResources(Resource):
                 else:
                     setattr(doctor, key, data[key])
             db.session.commit()
+        
+            # Clear cache for this specific doctor and all doctors list
+            invalidate_doctor_caches(doctor_id)
+            
             return marshal(doctor, doctor_fields)
         else:
             return {"message": "You are not authorized"}, 403
@@ -326,7 +357,6 @@ class Availability(Resource):
                         s_marshaled["original_availability"] = 0
                         s_marshaled["updated_availability"] = 0
                         shifts[d_str] += [s_marshaled]
-        print(shifts)
         return shifts, 200
     
     @auth_required("token")
@@ -367,9 +397,15 @@ class Availability(Resource):
                         # remove from database
                         doctor.doctor_shift.remove(shift)
             db.session.commit()
+        
+        # Clear cache for this specific doctor and all doctors list
+        invalidate_doctor_caches(doctor_id)
+        
+        return 200
 
 class DoctorAppointments(Resource):
     @auth_required("token")
+    @cache.cached(make_cache_key = make_appointments_cache_key)
     def get(self, doctor_id):
         # Check if user has permission to view this doctor
         # Admins can view any doctor, doctors can only view themselves
