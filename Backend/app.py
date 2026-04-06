@@ -20,7 +20,7 @@ app.config["CACHE_TYPE"] = "RedisCache"
 app.config["CACHE_DEFAULT_TIMEOUT"] = 60
 cache.init_app(app)
 
-# celery
+# ---------------------------------------------------------------- celery -------------------------------------------------------------------
 
 def celery_init_app(app: Flask) -> Celery:
     class FlaskTask(Task):
@@ -41,27 +41,23 @@ app.config.from_mapping(
 )
 celery_app = celery_init_app(app)
 
-@app.route("/reminders/patients")
-def get_report():
-    result = reminders.patient_daily_reminders()
-    return {"result": result}
-
 # Periodic Tasks
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender: Celery, **kwargs):
-    # Executes every Monday morning at 7:30 a.m.
+    # Executes every day morning at 7:30 a.m.
     sender.add_periodic_task(
-        crontab(hour=7, minute=30, day_of_week=2),
+        crontab(hour=19, minute=16),
         reminders.patient_daily_reminders.s(),
         name="daily-reminders"
     )
 
     # Executes monthly report on the 1st of each month at 9 AM
-    sender.add_periodic_task(
-        crontab(day_of_month=1, hour=9, minute=0),
-        reminders.monthly_report_doctors.s(),
-        name="monthly-report"
-    )
+    # sender.add_periodic_task(
+    #     crontab(day_of_month=1, hour=9, minute=0),
+    #     reminders.monthly_report_doctors.s(),
+    #     name="monthly-report"
+    # )
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 app.app_context().push()
 
@@ -83,6 +79,8 @@ app.datastore = datastore
 # registering blueprint
 app.register_blueprint(api_bp)
 
+#-------------------------------------------- For model code-----------------------------------------------
+
 # check if any date in the coming week is missing
 # if any date is missing, add rows to the shift table
 
@@ -94,5 +92,32 @@ add_missing_shifts()
 from mark_past_appointments import mark_past_appointments_completed
 mark_past_appointments_completed()
 
+# add upcoming doctor slots and appointments
+
+from models import *
+from upcoming_appt import add_doctor_shifts_today, add_doctor_shifts_tomorrow, add_doctor_shifts_day_after_tomorrow
+
+date_today = date.today()
+time = datetime.min.time()
+date_today = datetime.combine(date_today, time)
+next_week_dates = [(date_today + timedelta(days = i)) for i in range(1,8)]
+
+check_slots_for_today = Shift.query.filter(Shift.date == date_today).first()
+check_slots_for_tomorrow = Shift.query.filter(Shift.date == next_week_dates[0]).first()
+check_slots_for_day_after_tomorrow = Shift.query.filter(Shift.date == next_week_dates[1]).first()
+
+add_availability_appointments_today = check_slots_for_today.shift_doctor
+add_availability_appointments_tomorrow = check_slots_for_tomorrow.shift_doctor
+add_availability_appointments_day_after_tomorrow = check_slots_for_day_after_tomorrow.shift_doctor
+if add_availability_appointments_today == []:
+    add_doctor_shifts_today()
+
+if add_availability_appointments_tomorrow == []:
+    add_doctor_shifts_tomorrow()
+
+if add_availability_appointments_day_after_tomorrow == []:
+    add_doctor_shifts_day_after_tomorrow()
+
+#----------------------------------------------Run the app---------------------------------------------------
 if __name__ == '__main__':
     app.run(debug = True)

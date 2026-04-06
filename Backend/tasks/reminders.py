@@ -48,26 +48,34 @@ def send_email(to_address, subject, message, attachment = None):
 # Celery task to send daily reminders to patients
 @shared_task()
 def patient_daily_reminders():
-    appointments = Appointment.query.filter(Appointment.date >= date.today(), Appointment.status == "Booked").all()
-    patients_list = []
+    now = datetime.now()
+    today_appt = Appointment.query.filter(Appointment.date == date.today(), Appointment.status == "Booked").all()
+    patients_dict = {}
+    for a in today_appt:
+        if a.patient_id not in patients_dict.keys():
+            patients_dict[a.patient_id] = {}
+            patients_dict[a.patient_id]["appointments"] = [a]
+        else:
+            patients_dict[a.patient_id]["appointments"] += [a]
 
-    for appt in appointments:
-        if appt.patient_id != None:
-            patients_list += [appt.patient_id]
+    for p in patients_dict:
+        l = len(patients_dict[p]["appointments"])
+        message = f"Hi, you have {l} appointments today"
+        patients_dict[p]["message"] = message
 
-    # Get the path to example.html
+    # Get the path to patient_daily_reminders.html
     script_dir = Path(__file__).parent
-    template_path = script_dir / "example.html"
+    template_path = script_dir / "patient_daily_reminders.html"
 
     with open(template_path) as file:
         template = Template(file.read())
 
-    for p_ID in patients_list:
+    for p_ID in patients_dict:
         patient = db.get_or_404(Patient, p_ID)
-        message = template.render(data = "Testing Celery", patient = patient)
-        send_email(patient.patient_user.email, "Testing Periodic Mails", message = message)
-    return patients_list
-
+        reminder_message = patients_dict[p_ID]["message"]
+        appt = patients_dict[p_ID]["appointments"]
+        message = template.render(appt = appt, patient = patient, reminder_message = reminder_message, now = now)
+        send_email(patient.patient_user.email, "Appointment reminder", message = message)
 
 @shared_task
 def treatment_history_patient(patient_id):
@@ -123,21 +131,46 @@ def treatment_history_patient(patient_id):
     return filename
 
 @shared_task()
-def monthly_report_doctors():
-    doctors = Doctor.query.all()[:2]
+def monthly_report_doctor(doctor_id):
+    now = datetime.now()
 
-    reports_folder = Path(__file__).parent.parent / "reports"  # Backend/reports
+    doctor = db.get_or_404(Doctor, doctor_id)
+    prev_month_dates = [(date.today() + timedelta(days = -i)) for i in range(1, 32)]
+    prev_month_appts = []
+    for d in prev_month_dates:
+        prev_month_appts += Appointment.query.filter(Appointment.date == d, Appointment.doctor_id == doctor.doctor_id).all()
 
+    # Get the path to monthly_report.html
     script_dir = Path(__file__).parent
     template_path = script_dir / "monthly_report.html"
 
     with open(template_path) as file:
         template = Template(file.read())
 
-    for doctor in doctors:
-        filename = f"{doctor.name}_monthly_report.pdf"
-        message = template.render(data = "Testing Celery", doctor = doctor)
-        html = HTML(string = message)
-        html.write_pdf(target = reports_folder/filename)
-        send_email(doctor.doctor_user.email, "Testing Periodic Mails", message = "", attachment = filename)
+    report_message = f"Hi {doctor.name}, here is your monthly report for {datetime.strftime(now, "%B")}"
+    message = template.render(appt = prev_month_appts, doctor = doctor, report_message = report_message, now = now)
+    send_email(doctor.doctor_user.email, f"Monthly Report {datetime.strftime(now, "%B")}", message = message)
 
+# PDF
+# @shared_task()
+# def monthly_report_doctors(doctor_id):
+#     doctor = db.get_or_404(Doctor, doctor_id)
+#     prev_month_dates = [(date.today() + timedelta(days = -i)) for i in range(32)]
+#     prev_month_appts = []
+#     for d in prev_month_dates:
+#         prev_month_appts += Appointment.query.filter(Appointment.date == d, Appointment.doctor_id == doctor.doctor_id).all()
+
+#     reports_folder = Path(__file__).parent.parent / "reports"  # Backend/reports
+
+#     script_dir = Path(__file__).parent
+#     template_path = script_dir / "monthly_report.html"
+
+#     with open(template_path) as file:
+#         template = Template(file.read())
+
+#     for doctor in doctors:
+#         filename = f"{doctor.name}_monthly_report.pdf"
+#         message = template.render(data = "Testing Celery", doctor = doctor)
+#         html = HTML(string = message)
+#         html.write_pdf(target = reports_folder/filename)
+#         send_email(doctor.doctor_user.email, "Testing Periodic Mails", message = "", attachment = filename)

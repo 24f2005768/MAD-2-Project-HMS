@@ -8,6 +8,7 @@ from sqlalchemy import desc
 from models import *
 from caching_config import *
 from .marshal_fields import doctor_fields, appointment_fields, shift_fields, patient_fields
+from tasks import reminders
 
 # parser for GET requests (Doctor)
 get_parser = reqparse.RequestParser()
@@ -428,4 +429,9 @@ class DoctorAppointments(Resource):
         else:
             return {"message": "You are not authorized"}, 403
         
-
+class DoctorMonthlyReport(Resource):
+    @auth_required("token")
+    @roles_required("Doctor")
+    def get(self, doctor_id):
+        result = reminders.monthly_report_doctor(doctor_id = doctor_id)
+        return result, 200

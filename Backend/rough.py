@@ -4,6 +4,7 @@ from datetime import time, date, timedelta, datetime
 from sqlalchemy import or_, desc, asc
 from datetime import datetime
 
+'''
 # Get current local date and time
 now = datetime.now()
 # print(now.strftime('%B')) # Output: 2026-04-01 10:53:15.123456
@@ -73,3 +74,24 @@ results["this_month_appt_by_doctors"] = this_month_appt_by_doctors
 results["appointments_by_month"] = appointments_by_month
 
 print(results)
+'''
+
+today_appt = Appointment.query.filter(Appointment.date == date.today()).all()
+patients_dict = {}
+for a in today_appt:
+    if a.patient_id not in patients_dict.keys():
+        patients_dict[a.patient_id] = {}
+        patients_dict[a.patient_id]["appointments"] = [a]
+    else:
+        patients_dict[a.patient_id]["appointments"] += [a]
+
+for p in patients_dict:
+    l = len(patients_dict[p]["appointments"])
+    message = f"Hi, you have {l} appointments today"
+    patients_dict[p]["message"] = message
+
+doctor = db.get_or_404(Doctor, 2)
+prev_month_dates = [(date.today() + timedelta(days = -i)) for i in range(32)]
+prev_month_appt = []
+for d in prev_month_dates:
+    prev_month_appt += Appointment.query.filter(Appointment.date == d, Appointment.doctor_id == doctor.doctor_id).all()

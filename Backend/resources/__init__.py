@@ -2,7 +2,7 @@ from flask import Blueprint
 from flask_restful import Api
 
 from resources.auth_resources import LoginResource, RegisterResource, LogoutResource
-from resources.doctor_resources import DoctorResources, AllDoctorResources, Availability, DoctorAppointments
+from resources.doctor_resources import DoctorResources, AllDoctorResources, Availability, DoctorAppointments, DoctorMonthlyReport
 from resources.patient_resources import PatientResources, AllPatientResources, PatientTreatmentHistory
 from resources.appointment_resources import AppointmentResources, AllAppointmentResources, SelectShift, BookAppointment, CancelAppointment, RescheduleAppointment, TreatmentResources
 from resources.department_resources import DepartmentResources, AllDepartmentResources
@@ -20,6 +20,7 @@ api.add_resource(DoctorResources, "/doctor", "/doctor/<int:doctor_id>")
 api.add_resource(AllDoctorResources, "/doctors")
 api.add_resource(Availability, "/doctor/availability/<int:doctor_id>")
 api.add_resource(DoctorAppointments, "/doctor/appointments/<int:doctor_id>")
+api.add_resource(DoctorMonthlyReport, "/doctor/monthly-report/<int:doctor_id>")
 
 # Department Routes
 api.add_resource(DepartmentResources, "/dept", "/dept/<int:dept_id>")

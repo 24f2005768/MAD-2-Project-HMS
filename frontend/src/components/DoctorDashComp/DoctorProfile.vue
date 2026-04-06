@@ -35,6 +35,10 @@
                                     <span v-if="collapseProfile">View Profile</span>
                                     <span v-else>Collapse Profile</span>
                                 </button>
+
+                                <button class = "btn btn-outline-info" @click="sendMonthlyReport">
+                                    Request Monthly Report
+                                </button>
                             </div>
                         </div>
                         
@@ -184,8 +188,23 @@
                     console.log(modal)
                     modal.hide()
                 }
-                catch(error) {}
-            }
+                catch(error) {
+                    this.$emit('error', error.message)
+                }
+            },
+            async sendMonthlyReport() {
+                try {
+                    const doctorID = this.store.user.doctor_id;
+                    const send_history = await requestAPI("GET", null, `/doctor/monthly-report/${doctorID}`)
+
+                    if (send_history) {
+                        this.$emit('success', "Your report was sent successfully! Please check your inbox.")
+                    }
+                }
+                catch(error) {
+                    this.$emit('error', error.message)
+                }
+            },
         },
         mounted() {
             this.getDoctor()
