@@ -6,80 +6,80 @@
             <h3 class>Register</h3>
         </div>
 
-        <div class = 'card row d-flex flex-column justify-content-center align-items-center gap-2 w-50'>
+        <div class = 'card row d-flex flex-column justify-content-center align-items-center gap-2 p-2 w-50'>
             <form @submit.prevent = "RegisterPatient">
                 
                 <div class = 'row'>
                     <!-- user name, password, email  -->
                     <div class="row mt-3 mb-3">
-                        <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="text" class="form-control" placeholder="User Name*" v-model="user_name"
-                            id="user_name floatingInput">
-                            <label for="user_name" class="form-label">User Name</label>
+                        <div class="col-md row-sm mb-3 form-floating">
+                            <input type="text" class="form-control" v-model="user_name"
+                            id="user_name">
+                            <label for="user_name" class="form-label ms-2">User Name*</label>
                         </div>
 
                         <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="password" class="form-control" placeholder="Password*" v-model="user_password"
+                            <input type="password" class="form-control" v-model="user_password"
                             id="user_password">
-                            <label for="user_password" class="form-label">Password</label>
+                            <label for="user_password" class="form-label ms-2">Password*</label>
                         </div>
 
                         <div class="col-md row-sm mb-3 form-floating form-floating">
-                            <input type="email" class="form-control" placeholder="Email" v-model="email"
+                            <input type="email" class="form-control" v-model="email"
                             id="email">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label ms-2">Email*</label>
                         </div>
                     </div>
 
                     <div class="row mt-3 mb-3">
                         <!-- contact_number name dob  -->
                         <div class="col-md row-sm mb-3 form-floating">
-                            <input type="tel" class="form-control" placeholder="Contact Number" v-model="contact_number"
+                            <input type="tel" class="form-control" v-model="contact_number"
                             id="contact_number">
-                            <label for="contact_number" class="form-label">Contact Number</label>
+                            <label for="contact_number" class="form-label ms-2">Contact Number</label>
                         </div>
 
 
                         <div class="col-md row-sm mb-3 form-floating">
-                            <input type="text" class="form-control"  placeholder="Name*" v-model="name"
+                            <input type="text" class="form-control" v-model="name"
                             id="name">
-                            <label for="name" class="form-label">Name</label>
+                            <label for="name" class="form-label ms-2">Name*</label>
                         </div>
 
                         <div class="col-md row-sm mb-3 form-floating">
                             <input type="date" class="form-control" v-model="dob"
                             id="dob">
-                            <label for="dob" class="form-label">DOB</label>
+                            <label for="dob" class="form-label ms-2">DOB</label>
                         </div>
                     </div>
 
                     <div class="row mt-3 mb-3">
                         <!-- gender, weight, height  -->
                         <div class="col-md row-sm mb-3 form-floating">
-                            <select class="form-select" aria-label="Default select example" v-model="gender">
+                            <select class="form-select" v-model="gender">
                                 <option disabled value="">Please select gender</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                                 <option value="Other">Other</option>
                             </select>
-                            <label for="gender" class="form-label">Gender</label>              
+                            <label for="gender" class="form-label ms-2">Gender</label>              
                         </div>
 
                         <div class="col-md row-sm mb-3 form-floating">
-                            <input type="number" class="form-control" placeholder="Height" min="0" v-model="height"
+                            <input type="number" class="form-control" min="0" v-model="height"
                             id="height">
-                            <label for="height" class="form-label">Height in cm</label>
+                            <label for="height" class="form-label ms-2">Height in cm</label>
                         </div>
 
                         <div class="col-md row-sm mb-3 form-floating">
-                            <input type="number" class="form-control" placeholder="Weight" min="0" v-model="weight"
+                            <input type="number" class="form-control" min="0" v-model="weight"
                             id="weight"> 
-                            <label for="weight" class="form-label">Weight in kg</label>
+                            <label for="weight" class="form-label ms-2">Weight in kg</label>
                         </div>
                     </div>
 
                     <div class = 'row d-flex flex-column align-items-center mb-3'>
-                        <button type="submit" class="btn btn-outline-primary col-2">
+                        <button type="submit" class="btn btn-outline-danger col-2">
                             Submit
                         </button>
                     </div>
@@ -129,15 +129,28 @@
                         weight: this.weight
                     }
                     const res = await requestAPI('POST', data,'/register');
-                    this.$router.push('/')
+                    this.$router.push('/login')
                 }
                 catch(error) {
                     this.errorHandler(error.message);
                 }
             },
             errorHandler(message) {
-                    this.errorMessage = message;
-                    }
+                this.errorMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.errorMessage = '';
+                }, 5000);
+            },
         }
     }
 </script>
+
+<style scoped>
+    .card {
+        background-color: #f5cdcd;
+    }
+    input, select {
+        background-color: #f5eeee;
+    }
+</style>

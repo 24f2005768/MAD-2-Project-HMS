@@ -35,7 +35,7 @@ const router = createRouter({
     {path: '/admin/doctor/:did', component: ViewDoctor},
     {path: '/admin/dept/:deptId', component: ViewDepartment},
     {path: '/admin/appointment/:aid', component: AdminDashViewAppointment},
-    {path: '/admin/search/:query', component: search},
+    {path: '/admin/search/:query', component: search, name: "adminSearch"},
 
     {path: '/doctor', component: DoctorDashboard},
     {path: '/doctor/patient/:pid', component: DoctorDashViewPatient},

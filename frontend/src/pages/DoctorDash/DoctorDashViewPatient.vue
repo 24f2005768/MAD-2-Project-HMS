@@ -14,8 +14,8 @@
                         Past Appointments ({{ patient.past_appointment.length }})
                     </button>
                 </div>  
-            </div>              
-
+            </div>  
+            
             <div class = "col">
                 <div class = "container">
                     <div class = "d-flex justify-content-between">

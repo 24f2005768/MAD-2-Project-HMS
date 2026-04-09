@@ -25,7 +25,6 @@
                         <label class="input-group-text" for="inputGroupSelect02">Doctors</label>
                         <select class="form-select" id="inputGroupSelect02" v-model="selectedDoctorID">
                             <option selected disabled value="">Please select a doctor</option>
-                            <!-- <option v-for = "doctor in all_doctors" :key = "doctor.doctor_id" :value = "doctor.doctor_id">{{ doctor.name }}</option> -->
                              <template v-for = "doctor in all_doctors" :key = "doctor.doctor_id">
                                 <option v-if="doctor.doctor_user.blacklisted == false" :value = "doctor.doctor_id">{{ doctor.name }}</option>
                                 <option disabled="" v-if="doctor.doctor_user.blacklisted == true">{{ doctor.name }}</option>
@@ -45,7 +44,6 @@
                         <label class="input-group-text" for="inputGroupSelect04">Slot</label>
                         <select class="form-select" id="inputGroupSelect04" v-model="selectedSlotID">
                             <option selected disabled value="">Please select a slot</option>
-                            <!-- <option v-for = "s in shift" :value = "s.id">{{ s.start_time }} - {{ s.end_time }}</option> -->
                             <template v-for="s in shift" :key="s.id">
                                 <option v-if="s.doctor_free === true && s.patient_free === true" :value="s.id">
                                     {{ s.start_time }} - {{ s.end_time }} (Available)
@@ -63,8 +61,8 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button v-if="doctor && slot && shift" type="button" class="btn btn-primary" v-on:click="ConfirmBooking()">Book</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button v-if="doctor && slot && shift" type="button" class="btn btn-outline-primary" v-on:click="ConfirmBooking()">Book</button>
                 </div>
             </div>
         </div>
@@ -77,7 +75,7 @@
 
     export default {
         name: 'BookAppointmentModal',
-        emits: ['error'],
+        emits: ['error', 'success'],
         data() {
             return {
                 store: useUserStore(),
@@ -102,11 +100,13 @@
                         patient_id: this.store.user.patient_id
                     }
                     const selected_slot = await requestAPI("PATCH", data, `/book-appointment/${this.slot.id}`)
-                    console.log("Successful Booking")
+                    if (selected_slot) {
+                        this.$emit('success', "Your appointment was successfully booked!");
+                    }
+                    bootstrap.Modal.getInstance(document.getElementById("bookAppointment")).hide()
                 }
                 catch(error) {
-                    console.log(error)
-                    console.error("Error booking an appointment", error)
+                    this.$emit("error", error.message)
                 }
             }
         },
@@ -142,7 +142,7 @@
                         const selected_slot = await requestAPI("GET", null, `/book-appointment/${newVal}`)
                         this.slot = selected_slot
                     } catch(error) {
-                        console.error('Error fetching selected slot', error)
+                        this.$emit('error', message);
                     }
                 }
             }

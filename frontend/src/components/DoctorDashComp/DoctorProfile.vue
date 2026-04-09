@@ -173,6 +173,7 @@
                     const update_doctor = await requestAPI('PATCH', data, `/doctor/${doctorID}`)
                     if (update_doctor) {
                         // Refresh doctor data
+                        this.$emit("success", "Your profile was updated successfully!")
                         this.getDoctor()
                     } 
                     // close modal

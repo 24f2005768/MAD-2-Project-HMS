@@ -16,13 +16,11 @@
             </div>
 
             <div v-if = "patient" class = 'col'>
-                <div class="d-flex justify-content-end my-2">
-                    <button type = "button" class="btn btn-outline-secondary" onclick = 'history.back()'>
-                        Go Back
-                    </button>
+                <div class = "w-100 d-flex justify-content-end mb-3">
+                    <button type = "button" class="btn btn-outline-secondary" onclick = 'history.back()'>Go Back</button>
                 </div>
 
-                <div clas = "container">
+                <div class = "container card p-3">
                     <div class = "d-flex justify-content-between">
                         <h2>Patient Profile</h2>
 
@@ -44,84 +42,84 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Always visible -->
+                    <div class = 'container'>
+                        <div class = 'row'>
+                            <div class = 'col-sm-3 text-center'>
+                                <img :src="`/images/${patient.pfp}.png`" height="200px" width="200px">
+                                <p><strong>Name: </strong>{{ patient.name }}</p>
+                            </div>
+                            
+                            <div class = 'col'>
+                                <h3 v-show = "blacklist_status">This user is currently blacklisted</h3>
+                                <p><strong>Patient ID: </strong> {{ patient.patient_id }}</p>
+                                <p><strong>Gender: </strong>{{ patient.gender }}</p>
+                                <p><strong>DOB: </strong>{{ patient.dob }}</p>
+                                <p><strong>Age: </strong>{{ patient.get_age }}</p>
+                                <p><strong>Contact Number: </strong>{{ patient.patient_user.contact_number }}</p>
+                                <p><strong>Email: </strong>{{ patient.patient_user.email }}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- Modal  -->
-                <div class = "modal fade" id = "update-patient-modal" tabindex = "-1">
-                    <div class = "modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Update Patient Details</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-
-                            <form @submit.prevent = "updatePatient">
-                                <div class="modal-body">
-                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                        <input type = "text" class = "form-control" v-model = "patient.name"
-                                        id="floatingInput">
-                                        <label for = "name" class = "form-label">Name</label>
-                                    </div>
-
-                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                        <select v-model = "patient.gender" class="form-select">
-                                            <option disabled value = "">Select Gender</option>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                        <label for = "gender" class="form-label">Gender</label>
-                                    </div>
-
-                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                        <input type = "date" class = "form-control" v-model = "patient.dob"
-                                        id="floatingInput">
-                                        <label for = "dob" class = "form-label">DOB</label>
-                                    </div>
-
-                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                        <input type = "text" class = "form-control" v-model = "patient.patient_user.contact_number"
-                                        id="floatingInput">
-                                        <label for = "contact_number" class = "form-label">Contact Number</label>
-                                    </div>
-
-                                    <div class = "col-md row-sm mb-3 form-floating form-floating">
-                                        <input type = "text" class = "form-control" v-model = "patient.patient_user.email"
-                                        id="floatingInput">
-                                        <label for = "email" class = "form-label">Email</label>
-                                    </div>
-
-
+                    <!-- Modal  -->
+                    <div class = "modal fade" id = "update-patient-modal" tabindex = "-1">
+                        <div class = "modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Update Patient Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
-                                
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn btn-outline-primary">Update Patient</button>
-                                </div>
-                            </form>
-                        </div>                        
-                    </div>
-                </div>
 
-                <!-- Always visible -->
-                 <div class = 'container'>
-                    <div class = 'row'>
-                        <div class = 'col-sm-3 text-center'>
-                            <img :src="`/images/${patient.pfp}.png`" height="200px" width="200px">
-                            <p><strong>Name: </strong>{{ patient.name }}</p>
-                        </div>
-                        
-                        <div class = 'col'>
-                            <h3 v-show = "blacklist_status">This user is currently blacklisted</h3>
-                            <p><strong>Patient ID: </strong> {{ patient.patient_id }}</p>
-                            <p><strong>Gender: </strong>{{ patient.gender }}</p>
-                            <p><strong>DOB: </strong>{{ patient.dob }}</p>
-                            <p><strong>Age: </strong>{{ patient.get_age }}</p>
-                            <p><strong>Contact Number: </strong>{{ patient.patient_user.contact_number }}</p>
-                            <p><strong>Email: </strong>{{ patient.patient_user.email }}</p>
+                                <form @submit.prevent = "updatePatient">
+                                    <div class="modal-body">
+                                        <div class = "col-md row-sm mb-3 form-floating form-floating">
+                                            <input type = "text" class = "form-control" v-model = "patient.name"
+                                            id="floatingInput">
+                                            <label for = "name" class = "form-label">Name</label>
+                                        </div>
+
+                                        <div class = "col-md row-sm mb-3 form-floating form-floating">
+                                            <select v-model = "patient.gender" class="form-select">
+                                                <option disabled value = "">Select Gender</option>
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                            <label for = "gender" class="form-label">Gender</label>
+                                        </div>
+
+                                        <div class = "col-md row-sm mb-3 form-floating form-floating">
+                                            <input type = "date" class = "form-control" v-model = "patient.dob"
+                                            id="floatingInput">
+                                            <label for = "dob" class = "form-label">DOB</label>
+                                        </div>
+
+                                        <div class = "col-md row-sm mb-3 form-floating form-floating">
+                                            <input type = "text" class = "form-control" v-model = "patient.patient_user.contact_number"
+                                            id="floatingInput">
+                                            <label for = "contact_number" class = "form-label">Contact Number</label>
+                                        </div>
+
+                                        <div class = "col-md row-sm mb-3 form-floating form-floating">
+                                            <input type = "text" class = "form-control" v-model = "patient.patient_user.email"
+                                            id="floatingInput">
+                                            <label for = "email" class = "form-label">Email</label>
+                                        </div>
+
+
+                                    </div>
+                                    
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-outline-primary">Update Patient</button>
+                                    </div>
+                                </form>
+                            </div>                        
                         </div>
                     </div>
-                </div>
 
                 <!-- Conditional Rendering -->
                 <div class="tab-content d-flex flex-grow-1" id="v-tab-tabContent">

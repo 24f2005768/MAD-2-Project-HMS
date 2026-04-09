@@ -34,6 +34,9 @@ class DepartmentResources(Resource):
         db.session.add(dept)
         db.session.commit()
 
+        pfp = db.get_or_404(ProfilePictures, 11)
+        dept.pfp = pfp.name
+
         # Clear cache for all departments
         invalidate_department_caches()
 

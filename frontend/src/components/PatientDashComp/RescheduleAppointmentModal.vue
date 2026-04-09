@@ -48,7 +48,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
                     <button v-if="doctor && slot && shift" type="button" class="btn btn-outline-primary" v-on:click="ConfirmReschedule()">Reschedule</button>
                 </div>
             </div>
@@ -101,6 +101,7 @@
                     if (selected_slot) {
                         this.$emit('success', 'Your appointment was rescheduled successfully!')
                     }
+                    bootstrap.Modal.getInstance(document.getElementById(`rescheduleAppointment-${this.appointment_id}`)).hide()
                 }
                 catch(error) {
                     this.$emit('error', error.message)

@@ -4,8 +4,9 @@
             <!-- photo container  -->
             <div class = "col-3 d-flex flex-column justify-content-center align-items-center p-2">
                 <div class = "rounded p-2 d-flex flex-column justify-content-center align-items-center">
-                    <div class = "mt-2">
-                        <img :src="`/images/${patient.pfp}.png`" height="150px">
+                    <div class = "mt-2 d-flex align-items-center flex-column">
+                        <div><img :src="`/images/${patient.pfp}.png`" height="150px"></div>
+                        <h4 class = "m-10">{{ patient.name }}</h4>
                     </div>
                 </div>
             </div>
@@ -17,7 +18,7 @@
                     <div class="w-100">
                         <div class="d-flex justify-content-between mb-3">
                             <div>
-                                <h4 class = "m-10">{{ patient.name }}</h4>
+                                <h4>Profile</h4>
                             </div>
 
                             <div class = "d-flex gap-2">
@@ -72,6 +73,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Dr. {{ a.app_doctor.name }}</h5>
                             <div class = "border-top">
+                                <p class="card-text mt-2 mb-2"><strong>Appt. ID: </strong>{{ a.appointment_id }}</p>
                                 <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
                                 <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
 
@@ -95,11 +97,11 @@
                                 </div>
 
                                 <div v-if = "a.status == 'Completed'">
-                                    <!-- <RouterLink :to='`/doctor/appointment/${a.appointment_id}`'> -->
+                                    <RouterLink :to='`/patient/appointment/${a.appointment_id}`'>
                                         <button class = "btn btn-outline-secondary">
                                             View Details
                                         </button>
-                                    <!-- </RouterLink> -->
+                                    </RouterLink>
                                 </div>
                             </div>
                         </div>
@@ -159,6 +161,7 @@
                     const update_patient = await requestAPI('PATCH', data, `/patient/${patientID}`)
                     if (update_patient) {
                         // Refresh patient data
+                        this.$emit("success", "Your profile was updated successfully!")
                         this.getPatient()
                     } 
                     // close modal
@@ -175,9 +178,21 @@
                     const patientID = this.store.user.patient_id;
                     const send_history = await requestAPI("GET", null, `/patient/treatment-history/${patientID}`)
 
-                    if (send_history) {
-                        this.$emit('success', "Your report was sent successfully! Please check your inbox.")
+                    this.$emit('success', "Generating your report.")
+
+                    const poll = () => {
+                        fetch(`http://localhost:5000/api/backend-task/${send_history.task_id}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data['ready'] == true) {
+                                this.$emit('success', "Your report was sent successfully! Please check your inbox.")
+                            } else {
+                                setTimeout(poll, 1000)
+                            }
+                        })
                     }
+
+                    setTimeout(poll, 2000)
                 }
                 catch(error) {
                     this.$emit('error', error.message)

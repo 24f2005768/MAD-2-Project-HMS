@@ -27,7 +27,9 @@
                                 </div>
         
                                 <div>
-                                    <p><strong>Dr. {{ doctor.name }}</strong></p>
+                                    <RouterLink :to = '`/patient/doctor/${doctor.doctor_id}`' style="color: black;">
+                                        <p><strong>Dr. {{ doctor.name }}</strong></p>
+                                    </RouterLink>
                                 </div>
                             </div>
         

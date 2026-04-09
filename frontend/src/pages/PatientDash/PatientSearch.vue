@@ -22,6 +22,8 @@
                 <button type = "button" class="btn btn-outline-secondary" onclick = 'history.back()'>Go Back</button>
             </div>
 
+            <h4 class = "text-center" >Search Results for: {{ this.$route.params.query }}</h4>
+
              <div class = 'col w-75 mx-auto'>
                 <!-- Conditional Rendering -->
                 <div class="tab-content d-flex flex-grow-1" id="v-tab-tabContent">
@@ -45,7 +47,9 @@
                                             </div>
 
                                             <div>
-                                                <p><strong>{{doctor.name}}</strong></p>
+                                                <RouterLink :to = '`/patient/doctor/${doctor.doctor_id}`' style="color: black;">
+                                                    <p><strong>{{doctor.name}}</strong></p>
+                                                </RouterLink>
                                             </div>
                                         </div>
 
@@ -70,10 +74,6 @@
                                     <p>Nothing to show</p>
                                 </div>
 
-                                <!-- <li v-if="departments" v-for="department in departments.name">
-                                    {{ department }}
-                                </li> -->
-
                                 <div v-else v-for="dept in departments.name" class = "d-flex flex-column m-3">
                                     <!-- card for each department  -->
                                     <div class = "card d-flex flex-row w-100 h-auto shadow-sm hover-shadow" >
@@ -84,7 +84,9 @@
                                             </div>
 
                                             <div>
-                                                <p><strong>{{dept.name}}</strong></p>
+                                                <RouterLink :to = '`/patient/dept/${dept.department_id}`' style="color: black;">
+                                                    <p><strong>{{dept.name}}</strong></p>
+                                                </RouterLink>
                                             </div>
                                         </div>
 
@@ -119,7 +121,9 @@
                                             </div>
 
                                             <div>
-                                                <p><strong>{{doctor.name}}</strong></p>
+                                                <RouterLink :to = '`/patient/doctor/${doctor.doctor_id}`' style="color: black;">
+                                                    <p><strong>{{doctor.name}}</strong></p>
+                                                </RouterLink>
                                             </div>
                                         </div>
 
@@ -157,7 +161,9 @@
                                             </div>
 
                                             <div>
-                                                <p><strong>{{doctor.name}}</strong></p>
+                                                <RouterLink :to = '`/patient/doctor/${doctor.doctor_id}`' style="color: black;">
+                                                    <p><strong>{{doctor.name}}</strong></p>
+                                                </RouterLink>
                                             </div>
                                         </div>
 

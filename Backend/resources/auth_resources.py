@@ -104,8 +104,8 @@ class RegisterResource(Resource):
             user.user_patient = patient
 
             # add pfp
-            m_pfp = db.get_or_404(ProfilePictures, 6)
-            f_pfp = db.get_or_404(ProfilePictures, 5)
+            m_pfp = db.get_or_404(ProfilePictures, 3)
+            f_pfp = db.get_or_404(ProfilePictures, 4)
 
             if gender == "Male":
                 patient.pfp = m_pfp.name

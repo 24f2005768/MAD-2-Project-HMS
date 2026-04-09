@@ -46,17 +46,10 @@ celery_app = celery_init_app(app)
 def setup_periodic_tasks(sender: Celery, **kwargs):
     # Executes every day morning at 7:30 a.m.
     sender.add_periodic_task(
-        crontab(hour=19, minute=16),
+        crontab(hour=7, minute=30),
         reminders.patient_daily_reminders.s(),
         name="daily-reminders"
     )
-
-    # Executes monthly report on the 1st of each month at 9 AM
-    # sender.add_periodic_task(
-    #     crontab(day_of_month=1, hour=9, minute=0),
-    #     reminders.monthly_report_doctors.s(),
-    #     name="monthly-report"
-    # )
 # ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 app.app_context().push()

@@ -161,5 +161,5 @@ class PatientTreatmentHistory(Resource):
     @auth_required("token")
     @roles_required("Patient")
     def get(self, patient_id):
-        result = reminders.treatment_history_patient(patient_id=patient_id)
-        return result, 200
+        result = reminders.treatment_history_patient.delay(patient_id=patient_id)
+        return {"message": "Generating report!", "task_id": result.id}, 200

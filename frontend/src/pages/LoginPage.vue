@@ -6,7 +6,7 @@
             <h3 class>Login</h3>
         </div>
 
-        <div class = 'card row d-flex flex-column justify-content-center align-items-center gap-2 w-50'>
+        <div class = 'card row d-flex flex-column justify-content-center align-items-center gap-2 p-2 w-50'>
             <form @submit.prevent="loginUser">
                 <div class="mb-3 mt-3">
                     <label for="user_name" class="form-label">User Name</label>
@@ -21,7 +21,7 @@
                 </div>
                 
                 <div class = "w-100 d-flex justify-content-center mb-3">
-                    <button type="submit" class="btn btn-outline-primary">Submit</button>
+                    <button type="submit" class="btn btn-outline-danger">Submit</button>
                 </div>
             </form>
         </div>
@@ -83,3 +83,12 @@ export default {
     }
 
 </script>
+
+<style scoped>
+    .card {
+        background-color: #f5cdcd;
+    }
+    input {
+        background-color: #f5eeee;
+    }
+</style>

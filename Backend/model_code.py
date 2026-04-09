@@ -197,6 +197,7 @@ def create_initial_data():
     p8 = ProfilePictures(role = "Department", name = "Gastrology")
     p9 = ProfilePictures(role = "Department", name = "General Surgery")
     p10 = ProfilePictures(role = "Department", name = "Pediatrics")
+    p11 = ProfilePictures(role = "Department", name = "DefaultDepartment")
 
     lst = [p1,p2,p3,p4,p4,p5,p6,p7,p8,p9,p10]
     for p in lst:

@@ -1,28 +1,26 @@
-activate env: source /home/kriti/Desktop/VSCode/MAD-2-Project/MAD-2-Project-HMS/env/bin/activate
-
 pip freeze: pip3 freeze > requirements.txt
+
+# clear the db from Backend
+python3 -m scripts.init_db
+
+# run the app from Backend
+python3 app.py
 
 # making a DateTime object
 date_today = date.today()
 time = datetime.min.time()
 date_today = datetime.combine(date_today, time)
 
-# flask security
-@auth_required("token")
-
-# Check if user has permission to view this doctor
-# Admins can view any doctor, doctors can only view themselves
-if current_user.has_role('Admin') or (current_user.has_role('Doctor') and current_user.user_doctor.doctor_id == doctor_id):
-
 # Start Celery Worker
 celery -A app:celery_app worker --loglevel=info
 celery -A app:celery_app beat --loglevel=info
 
-# run together
-celery -l INFO -A app:celery_app worker --beat
-
-# virtual env
-source /home/kriti/Desktop/VSCode/MAD-2-Project/MAD-2-Project-HMS/env/bin/activate
+# virtual env from Backend
+source .env/bin/activate
 
 # run mailpit
 mailpit
+
+<p class="card-text mt-2 mb-2"><strong>Appt. ID: </strong>{{ a.appointment_id }}</p>
+<RouterLink :to='`/patient/appointment/${a.appointment_id}`'>
+bootstrap.Modal.getInstance(document.getElementById(`rescheduleAppointment-${this.appointment_id}`)).hide()

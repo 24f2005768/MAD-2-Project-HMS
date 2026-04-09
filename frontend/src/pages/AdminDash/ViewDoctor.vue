@@ -21,13 +21,17 @@
             </div>
 
             <div v-if="doctor" class = 'col'>
+
+            <div class = "w-100 d-flex justify-content-end mb-3">
+                <button type = "button" class="btn btn-outline-secondary" onclick = 'history.back()'>Go Back</button>
+            </div>
                 
                 <!-- Always visible -->
-                <div class = 'container'>
+                <div class = 'container card p-3'>
                     <div class = "d-flex justify-content-between">
                         <h2>Doctor Profile</h2>
 
-                        <div class = "d-flex gap-1">
+                        <div class = "d-flex gap-2">
                             <button class = "btn btn-outline-danger" v-show = "blacklist_button" v-on:click="changeBlacklistStatus">
                                 Blacklist
                             </button>
@@ -121,11 +125,11 @@
                 </div>
 
                 <!-- Conditional Rendering -->
-                <div class="tab-content d-flex flex-grow-1" id="v-tab-tabContent">
+                <div class="tab-content d-flex flex-grow-1 mt-3" id="v-tab-tabContent">
                     
                     <!-- Availability  -->
                     <div class="tab-pane fade show active w-100 mt-3" id="v-tab-home" role="tabpanel">
-                        <table class = "w-75 mx-auto table table-striped table-hover table-bordered">
+                        <table class = "w-100 mx-auto table table-striped table-hover table-bordered">
                             <thead>
                                 <tr>
                                     <th>Date</th>
