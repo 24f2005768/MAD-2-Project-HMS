@@ -22,7 +22,6 @@ import PatientDashViewDepartment from '@/pages/PatientDash/PatientDashViewDepart
 import PatientDashViewAppointment from '@/pages/PatientDash/PatientDashViewAppointment.vue'
 import PatientSearch from '@/pages/PatientDash/PatientSearch.vue'
 
-import TestPage from '@/pages/TestPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,8 +34,8 @@ const router = createRouter({
     {path: '/admin/patient/:pid', component: ViewPatient},
     {path: '/admin/doctor/:did', component: ViewDoctor},
     {path: '/admin/dept/:deptId', component: ViewDepartment},
-    {path: '/admin/search/:query', component: search},
     {path: '/admin/appointment/:aid', component: AdminDashViewAppointment},
+    {path: '/admin/search/:query', component: search},
 
     {path: '/doctor', component: DoctorDashboard},
     {path: '/doctor/patient/:pid', component: DoctorDashViewPatient},
@@ -49,7 +48,6 @@ const router = createRouter({
     {path: '/patient/appointment/:aid', component: PatientDashViewAppointment},
     {path: '/patient/search/:query', component: PatientSearch, name: "patientSearch"},
 
-    {path: '/test', component: TestPage}
   ],
 })
 

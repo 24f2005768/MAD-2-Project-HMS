@@ -135,4 +135,89 @@ class PatientChartsResources(Resource):
         results["this_month_appt_by_doctors"] = this_month_appt_by_doctors
         results["appointments_by_month"] = appointments_by_month
 
+        return results, 200 
+
+class DoctorChartsResource(Resource):
+    @auth_required("token")
+    @roles_required("Doctor")
+    def get(self, doctor_id):
+        doctor = db.get_or_404(Doctor, doctor_id)
+
+        results = {}
+
+        # Chart1: Show month wise appointments
+        patients_set = set()
+        appointments = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id).order_by(Appointment.date).all()
+        appointments_by_month = {}
+        for appt in appointments:
+            if appt.date.strftime('%B') not in appointments_by_month.keys():
+                appointments_by_month[appt.date.strftime('%B')] = 1
+            else:
+                appointments_by_month[appt.date.strftime('%B')] += 1
+
+            # add patient IDs to query for gender wise distribution 
+            patients_set.add(appt.patient_id)
+        results["appointments_by_month"] = appointments_by_month
+
+        # Chart 2 and 3: Show busiest slots of this doctor {overall, month wise}
+        overall_busiest_slots = {"Morning": 0, "Afternoon": 0, "Evening": 0}
+        this_month_busiest_slots = {"Morning": 0, "Afternoon": 0, "Evening": 0}
+
+        # Past appointments were not built with proper shift-slot relationship, they are randomly generated
+        # Work around to get the shift name
+        morning_time_slots = [
+            (9, 0), (9, 15), (9, 30), (9, 45), 
+            (10, 0), (10, 15), (10, 30), (10, 45), 
+            (11, 0), (11, 15), (11, 30), (11, 45),
+        ]
+
+        afternoon_time_slots = [
+            (14, 0), (14, 15), (14, 30), (14, 45), 
+            (15, 0), (15, 15), (15, 30), (15, 45), 
+            (16, 0), (16, 15), (16, 30), (16, 45),
+        ]
+
+        evening_time_slots = [
+            (20, 0), (20, 15), (20, 30), (20, 45), 
+            (21, 0), (21, 15), (21, 30), (21, 45), 
+            (22, 0), (22, 15), (22, 30), (22, 45)
+        ]
+
+        doctor_slots = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id).all()
+
+        for s in doctor_slots:
+            # build a start_time tuple
+            start_time = (s.start_time.hour, s.start_time.minute)
+
+            # add to respective overall lists
+            if start_time in morning_time_slots:
+                overall_busiest_slots["Morning"] += 1
+            elif start_time in afternoon_time_slots:
+                overall_busiest_slots["Afternoon"] += 1
+            elif start_time in evening_time_slots:
+                overall_busiest_slots["Evening"] += 1
+
+            # add to respective month wise lists
+            if start_time in morning_time_slots and s.date.month == date.today().month:
+                this_month_busiest_slots["Morning"] += 1
+            elif start_time in afternoon_time_slots and s.date.month == date.today().month:
+                this_month_busiest_slots["Afternoon"] += 1
+            elif start_time in evening_time_slots and s.date.month == date.today().month:
+                this_month_busiest_slots["Evening"] += 1
+
+        results["overall_busiest_slots"] = overall_busiest_slots
+        results["this_month_busiest_slots"] = this_month_busiest_slots
+
+        # Chart 4: Show gender distribution of patients
+        patients_by_gender = {"Male": 0, "Female": 0, "Other": 0}
+        for pID in patients_set:
+            patient = db.get_or_404(Patient, pID)
+            if patient.gender == "Male":
+                patients_by_gender["Male"] += 1
+            elif patient.gender == "Female":
+                patients_by_gender["Female"] += 1
+            else:
+                patients_by_gender["Other"] += 1
+        results["patients_by_gender"] = patients_by_gender
+
         return results, 200

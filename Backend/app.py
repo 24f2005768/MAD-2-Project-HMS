@@ -93,30 +93,8 @@ from mark_past_appointments import mark_past_appointments_completed
 mark_past_appointments_completed()
 
 # add upcoming doctor slots and appointments
-
-from models import *
-from upcoming_appt import add_doctor_shifts_today, add_doctor_shifts_tomorrow, add_doctor_shifts_day_after_tomorrow
-
-date_today = date.today()
-time = datetime.min.time()
-date_today = datetime.combine(date_today, time)
-next_week_dates = [(date_today + timedelta(days = i)) for i in range(1,8)]
-
-check_slots_for_today = Shift.query.filter(Shift.date == date_today).first()
-check_slots_for_tomorrow = Shift.query.filter(Shift.date == next_week_dates[0]).first()
-check_slots_for_day_after_tomorrow = Shift.query.filter(Shift.date == next_week_dates[1]).first()
-
-add_availability_appointments_today = check_slots_for_today.shift_doctor
-add_availability_appointments_tomorrow = check_slots_for_tomorrow.shift_doctor
-add_availability_appointments_day_after_tomorrow = check_slots_for_day_after_tomorrow.shift_doctor
-if add_availability_appointments_today == []:
-    add_doctor_shifts_today()
-
-if add_availability_appointments_tomorrow == []:
-    add_doctor_shifts_tomorrow()
-
-if add_availability_appointments_day_after_tomorrow == []:
-    add_doctor_shifts_day_after_tomorrow()
+from model_code import add_upcoming_appt
+add_upcoming_appt()
 
 #----------------------------------------------Run the app---------------------------------------------------
 if __name__ == '__main__':

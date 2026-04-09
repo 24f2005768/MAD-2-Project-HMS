@@ -25,7 +25,11 @@
                         <label class="input-group-text" for="inputGroupSelect02">Doctors</label>
                         <select class="form-select" id="inputGroupSelect02" v-model="selectedDoctorID">
                             <option selected disabled value="">Please select a doctor</option>
-                            <option v-for = "doctor in all_doctors" :key = "doctor.doctor_id" :value = "doctor.doctor_id">{{ doctor.name }}</option>
+                            <!-- <option v-for = "doctor in all_doctors" :key = "doctor.doctor_id" :value = "doctor.doctor_id">{{ doctor.name }}</option> -->
+                             <template v-for = "doctor in all_doctors" :key = "doctor.doctor_id">
+                                <option v-if="doctor.doctor_user.blacklisted == false" :value = "doctor.doctor_id">{{ doctor.name }}</option>
+                                <option disabled="" v-if="doctor.doctor_user.blacklisted == true">{{ doctor.name }}</option>
+                            </template>
                         </select>
                     </div>
 

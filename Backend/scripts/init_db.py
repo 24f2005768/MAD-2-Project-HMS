@@ -32,4 +32,9 @@ with app.app_context():
 
     datastore.add_role_to_user(admin, admin_role)
 
+    from models import *
+    from model_code import create_initial_data
+    create_initial_data()
+
+
     db.session.commit()

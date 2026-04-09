@@ -35,7 +35,13 @@
                                 </div>
         
                                 <div>
-                                    <p><strong><RouterLink :to = "`/admin/doctor/${doctor.doctor_id}`">Dr. {{ doctor.name }}</RouterLink></strong></p>
+                                    <p>
+                                        <strong>
+                                            <RouterLink :to = "`/admin/doctor/${doctor.doctor_id}`" style="color: black;">
+                                                Dr. {{ doctor.name }}
+                                            </RouterLink>
+                                        </strong>
+                                    </p>
                                 </div>
                             </div>
         
@@ -91,7 +97,7 @@
                     this.$emit('success', 'Doctor added successfully!')
                 }
                 catch(error) {
-                    this.$emit('error', error.message || 'An error occurred')
+                    this.$emit('error', error.message)
                 }
             }
         },
@@ -114,4 +120,13 @@
         border-bottom: 2px solid orangered !important;
         cursor: pointer !important;
     }
+
+    .hover-shadow {
+        transition: all 0.2s ease;
+    }
+
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175)!important;
+    } 
 </style>

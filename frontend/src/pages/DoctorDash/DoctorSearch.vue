@@ -3,9 +3,17 @@
         <div class = 'container'>
             <div class = 'col'>
                 <div class="nav nav-tab me-3 my-auto d-flex align-items-center justify-content-center" id="v-tab-tab" role="tablist" aria-orientation="vertical">
-                    <button class="nav-link" id="v-tab-profile-tab" data-bs-toggle="pill" data-bs-target="#v-tab-profile" type="button" role="tab">Contact Number ({{ lengthCN }})</button>
-                    <button class="nav-link" id="v-tab-messages-tab" data-bs-toggle="pill" data-bs-target="#v-tab-messages" type="button" role="tab">Email ({{ lengthEmail }})</button>
-                    <button class="nav-link" id="v-tab-settings-tab" data-bs-toggle="pill" data-bs-target="#v-tab-settings" type="button" role="tab">Name ({{ lengthName }})</button>
+                    <button class="nav-link active" id="v-tab-profile-tab" data-bs-toggle="pill" data-bs-target="#v-tab-profile" type="button" role="tab">
+                        Contact Number ({{ lengthCN }})
+                    </button>
+                    
+                    <button class="nav-link" id="v-tab-messages-tab" data-bs-toggle="pill" data-bs-target="#v-tab-messages" type="button" role="tab">
+                        Email ({{ lengthEmail }})
+                    </button>
+
+                    <button class="nav-link" id="v-tab-settings-tab" data-bs-toggle="pill" data-bs-target="#v-tab-settings" type="button" role="tab">
+                        Name ({{ lengthName }})
+                    </button>
 
                 </div>                
             </div>

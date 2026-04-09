@@ -8,12 +8,13 @@
                 </div>
 
                 <div class="modal-body">
+                    <!-- {{ shift }} -->
                     <div class = "d-flex justify-content-center align-items-center flex-column mb-3">
-                        <div v-if="doctor">
-                            <img :src="`/images/${doctor.pfp}.png`" height="100px">
+                        <div v-if="patient">
+                            <img :src="`/images/${patient.pfp}.png`" height="100px">
                         </div>
-                        <div v-if="doctor">
-                            <h6>Dr. {{ doctor.name }}</h6>
+                        <div v-if="patient">
+                            <h6>Dr. {{ patient.name }}</h6>
                         </div>
                         <div v-if="slot">
                             <h6>{{ slot.date }} - {{ slot.start_time }} - {{ slot.end_time }} ({{ slot.slots_shifts.name }})</h6>
@@ -33,13 +34,13 @@
                         <select class="form-select" id="inputGroupSelect04" v-model="selectedSlotID">
                             <option selected disabled value="">Please select a slot</option>
                             <template v-for="s in shift" :key="s.id">
-                                <option v-if="s.doctor_free === true && s.patient_free === true" :value="s.id">
+                                <option v-if="s.doctor_free === true" :value="s.id">
                                     {{ s.start_time }} - {{ s.end_time }} (Available)
                                 </option>
-                                <option v-else-if="s.patient_free === false && s.doctor_free === true" disabled :value="s.id" class="text-muted">
+                                <!-- <option v-else-if="s.patient_free === false && s.doctor_free === true" disabled :value="s.id" class="text-muted">
                                     {{ s.start_time }} - {{ s.end_time }} (You have an appointment)
-                                </option>
-                                <option v-else-if="s.doctor_free === false && s.patient_free === true" disabled :value="s.id" class="text-muted">
+                                </option> -->
+                                <option v-else-if="s.doctor_free === false" disabled :value="s.id" class="text-muted">
                                     {{ s.start_time }} - {{ s.end_time }} (Booked)
                                 </option>
                             </template>
@@ -48,7 +49,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
                     <button v-if="doctor && slot && shift" type="button" class="btn btn-outline-primary" v-on:click="ConfirmReschedule()">Reschedule</button>
                 </div>
             </div>
@@ -64,6 +65,10 @@
         name: 'RescheduleAppointmentModal',
         emits: ['error', 'success'],
         props: {
+            patient_id: {
+                type: Number,
+                required: true
+            },
             doctor_id: {
                 type: Number,
                 required: true
@@ -77,6 +82,7 @@
             return {
                 store: useUserStore(),
                 appointments: [],
+                patient: null,
                 doctor: null,
                 // all_doctors: null,
                 shift: null, 
@@ -87,19 +93,24 @@
             }
         }, 
         methods: {
+            async getPatient() {
+                const p = await requestAPI("GET", null, `/patient/${this.patient_id}`)
+                this.patient = p;
+            },
             async getDoctor() {
-                const doc = await requestAPI("GET", null, `/doctor/${this.doctor_id}?availability=true`)
-                this.doctor = doc;
+                const d = await requestAPI("GET", null, `/doctor/${this.doctor_id}?availability=true`)
+                this.doctor = d;
             },
             async ConfirmReschedule() {
                 try {
                     const data = { 
-                        patient_id: this.store.user.patient_id,
+                        patient_id: this.patient_id,
                         slot_id: this.selectedSlotID
                     }
                     const selected_slot = await requestAPI("PATCH", data, `/reschedule-appointment/${this.appointment_id}`)
                     if (selected_slot) {
                         this.$emit('success', 'Your appointment was rescheduled successfully!')
+                        bootstrap.Modal.getInstance(document.getElementById(`rescheduleAppointment-${this.appointment_id}`)).hide()
                     }
                 }
                 catch(error) {
@@ -114,9 +125,14 @@
                 this.selectedSlotID = ''
 
                 if (newVal && this.doctor) {
-                    // Fetch available slots for selected shift
-                    const selected_shift = await requestAPI("GET", null, `/select-shift/${this.doctor.doctor_id}/${newVal}`)
-                    this.shift = selected_shift
+                    try {
+                        // Fetch available slots for selected shift
+                        const selected_shift = await requestAPI("GET", null, `/select-shift/${this.doctor.doctor_id}/${newVal}`)
+                        this.shift = selected_shift
+                    }
+                    catch(error) {
+                        this.$emit("error", error.message)
+                    }
                 }
             },
             async selectedSlotID(newVal, oldVal) {
@@ -129,12 +145,13 @@
                         this.slot = selected_slot
                     } 
                     catch(error) {
-                        this.$emit('error', error.message)
+                        this.$emit("error", error.message)
                     }
                 }
             }
         },
         mounted() {
+            this.getPatient(),
             this.getDoctor()
         }
     }

@@ -74,8 +74,8 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-outline-primary">Add Doctor</button>
                     </div>
                 </form>
             </div>
@@ -118,6 +118,7 @@
                         department: this.department
                     }
                     this.$emit("form-add-doctor", data)
+                    bootstrap.Modal.getInstance(document.getElementById("addDoctorModal")).hide()
                 }
                 catch(error) {
                     this.$emit("error", error.message)

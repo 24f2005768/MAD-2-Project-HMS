@@ -23,8 +23,8 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-outline-primary">Add Department</button>
                     </div>
                 </form>
             </div>
@@ -51,6 +51,7 @@
                         description: this.description,
                     }
                     this.$emit("form-add-department", data)
+                    bootstrap.Modal.getInstance(document.getElementById("addDeptModal")).hide()
                 }
                 catch(error) {
                     this.$emit("error", error.message)

@@ -1,6 +1,7 @@
 <template>
     <div class="container d-flex align-items-center justify-content-center flex-grow-1 min-vh-90 min-vw-100">
         <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
+        <successToast v-if="successMessage" :message="successMessage" @close="successMessage = ''"/>
 
         <div v-if="appointment" class = "container">
             <div class = "col">
@@ -19,6 +20,7 @@
                 <div class = "container">
                     <div class = "d-flex justify-content-between">
                         <h2>Appointment Details</h2>
+                        <button type = "button" class="btn btn-outline-secondary" onclick = 'history.back()'>Go Back</button>
                     </div>
                 </div>
 
@@ -31,7 +33,12 @@
                                 <div>
                                     <img :src="`/images/${patientPfp}.png`" height="200px" width="200px">
                                 </div>
-                                <p><strong>Patient Name: </strong>{{ appointment.app_patient.name }}</p>
+                                <p>
+                                    <strong>Patient Name: </strong>
+                                    <RouterLink :to = '`/doctor/patient/${appointment.app_patient.patient_id}`' style="color: black;">
+                                        {{ appointment.app_patient.name }}
+                                    </RouterLink>
+                                </p>
                             </div>
                         </div>
 
@@ -48,6 +55,8 @@
                                 :appointment = "appointment"
                                 @update-treatment = "updateTreatmentDetails"/>
                             </div>
+
+                            <p><strong>Appt. ID: </strong>{{ appointment.appointment_id }}</p>
                             <p><strong>Time: </strong>{{ appointment.start_time }} - {{ appointment.end_time }}</p>
 
                             <div v-if="appointment.status == 'Completed'">
@@ -73,7 +82,7 @@
                     
                     <!-- Upcoming Appointments -->
                     <div class="tab-pane fade show active w-100" id="v-tab-upcoming-appointment" role="tabpanel">
-                        <h4 class = "mb-3">Upcoming Appointments</h4>
+                        <h4 class = "mb-3">Upcoming Appointments with {{ appointment.app_patient.name }}</h4>
                         <div v-if = "appointment.upcoming_appointment.length == 0">
                             <p>No upcoming appointments</p>
                         </div>
@@ -84,13 +93,27 @@
                                     <div class="card-body">
                                         <h5 class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</h5>  
                                         <div class = "border-top">
+                                            <p class="card-text mb-2"><strong>Appt. ID:</strong> {{ a.appointment_id }}</p>
                                             <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
                                             <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
 
                                             <div v-if="a.status == 'Booked'">
                                                 <div class = "d-flex gap-2 mt-2">
-                                                    <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">Cancel</button>
-                                                    <button class = "btn btn-outline-primary">Reschedule</button>
+                                                    <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">
+                                                        Cancel
+                                                    </button>
+
+                                                    <button class="btn btn-outline-primary" data-bs-toggle="modal" :data-bs-target="`#rescheduleAppointment-${a.appointment_id}`">
+                                                        Reschedule
+                                                    </button>
+
+                                                    <!-- modal  -->
+                                                    <RescheduleAppointmentModal 
+                                                    :patient_id = "a.app_patient.patient_id"
+                                                    :doctor_id = "a.app_doctor.doctor_id"
+                                                    :appointment_id = "a.appointment_id"
+                                                    @success="successHandler"
+                                                    @error="errorHandler"/>
                                                 </div>
                                             </div>
                                         </div>
@@ -102,7 +125,7 @@
 
                     <!-- Past Appointments  -->
                     <div class="tab-pane fade w-100" id="v-tab-past-appointment" role="tabpanel">
-                        <h4 class = "mb-3">Past Appointments</h4>
+                        <h4 class = "mb-3">Past Appointments with {{ appointment.app_patient.name }}</h4>
                         <div v-if = "appointment.past_appointment.length == 0">
                             <p>No past appointments</p>
                         </div>
@@ -113,9 +136,10 @@
                                     <div class="card-body">
                                         <h5 class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</h5> 
                                         <div class = "border-top">
+                                            <p class="card-text mb-2"><strong>Appt. ID:</strong> {{ a.appointment_id }}</p>
                                             <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
                                             <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
-                                            <button class = "btn btn-outline-secondary">View Details</button>
+                                            <button class = "btn btn-outline-secondary"><RouterLink :to = '`/doctor/appointment/${a.appointment_id}`' style="color: black; text-decoration: none;">View Details</RouterLink></button>
                                         </div>
                                     </div>
                                 </div>
@@ -129,10 +153,12 @@
 </template>
 
 <script>
-    import errorToast from '@/components/errorToast.vue';
     import { requestAPI } from '../../../utils/api';
-
+    
+    import errorToast from '@/components/errorToast.vue';
+    import successToast from '@/components/successToast.vue';
     import UpdateTreatmentModal from '@/components/DoctorDashComp/UpdateTreatmentModal.vue';
+    import RescheduleAppointmentModal from '@/components/DoctorDashComp/RescheduleAppointmentModal.vue';
 
     export default {
         name: "DoctorDashViewAppointment",
@@ -140,12 +166,15 @@
             return {
                 appointment: null,
                 errorMessage: null,
+                successMessage: "",
                 patientPfp: null
             }
         },
         components: {
             errorToast,
-            UpdateTreatmentModal
+            successToast,
+            UpdateTreatmentModal,
+            RescheduleAppointmentModal
         },
         methods: {
             async get_appointment() {
@@ -159,14 +188,11 @@
                     this.errorHandler(error.message)
                 }
             },
-            errorHandler(message) {
-                this.errorMessage = message
-            },
             async updateTreatmentDetails(data) {
                 try {
-                    console.log(data)
                     const apptID = this.$route.params.aid;
                     const update_appointment = await requestAPI("PATCH", data, `/treatment/${apptID}`)
+                    this.successHandler("Treatment details updated successfully!")
                 }
                 catch(error) {
                     this.errorHandler(error.message)
@@ -176,14 +202,35 @@
                 try {
                     const cancel_appointment = await requestAPI("PATCH", null, `/cancel-appointment/${appointmentID}`)
                     this.get_appointment()
+                    this.successHandler("Appointment cancelled successfully!")
                 }
                 catch(error) {
-                    this.$emit("error", error.message)
+                    this.errorHandler(error.message)
                 }
+            },
+            errorHandler(message) {
+                this.errorMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.errorMessage = '';
+                }, 5000);
+            },
+            successHandler(message) {
+                this.get_appointment()
+                this.successMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.successMessage = '';
+                }, 5000);
             },
         },
         mounted() {
             this.get_appointment()
+        },
+        watch: {
+            $route(newVal, oldVal) {
+                this.get_appointment()
+            }
         }
     }
 </script>

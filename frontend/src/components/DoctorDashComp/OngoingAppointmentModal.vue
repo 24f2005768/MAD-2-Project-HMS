@@ -36,8 +36,8 @@
                     </div>
                     
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-outline-primary">Save changes</button>
                     </div>
                 </form>
             </div>
@@ -48,6 +48,7 @@
 <script>
     export default {
         "name": "OngoingAppointmentModal",
+        emits: ["error"],
         data() {
             return {
                 diagnosis: null, 
@@ -72,7 +73,8 @@
                         prescription: this.prescription,
                         tests: this.tests
                     }
-                    this.$emit("treatment", data)                   
+                    this.$emit("treatment", data)  
+                    bootstrap.Modal.getInstance(document.getElementById(`ongoing-appt-modal-${this.appointment_id}`)).hide()                 
                 }
                 catch(error) {
                     this.$emit("error", error.message)

@@ -32,6 +32,7 @@
                             <h5 class="card-title">{{ a.app_patient.name }}</h5>
                             <h6 class = "card-title">Dr. {{ a.app_doctor.name }}</h6>
                             <div class = "border-top">
+                                <p class="card-text mt-2 mb-2"><strong>Appt. ID: </strong>{{ a.appointment_id }}</p>
                                 <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
                                 <p class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</p>  
                                 <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>                      

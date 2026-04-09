@@ -1,14 +1,14 @@
 <template>
-    <div class="container d-flex flex-column align-items-start flex-grow-1 min-vh-90 min-vw-100">
+    <div class="container d-flex flex-column align-items-start flex-grow-1 min-vw-100">
         <div v-if="patients">
             <h4 class = "ms-5">Patients ({{ patientCount }})</h4>
         </div>
 
         <div v-if="patients" class="w-75">
-            <div v-for="patientName in Object.keys(patients)" :key = 'patientName' class = "d-flex flex-column px-5 m-3">
+            <div v-for="patientName in Object.keys(patients)" :key = 'patientName' class = "d-flex flex-column px-5 mb-3">
                
                 <!-- card for each patient  -->
-                <div class = "card d-flex flex-row w-100 h-auto shadow-sm hover-shadow" >
+                <div class = "card d-flex flex-row w-100 mx-auto h-auto shadow-sm hover-shadow" >
                     <!-- photo container  -->
                     <div class = "col-3 d-flex flex-column justify-content-center align-items-center">
                         <div class = "mt-2">
@@ -16,7 +16,7 @@
                         </div>
 
                         <div>
-                            <p><strong>{{patients[patientName].patient_data.name}}</strong></p>
+                            <RouterLink :to = '`/doctor/patient/${patients[patientName].patient_data.patient_id}`' style="color: black;"><p><strong>{{patients[patientName].patient_data.name}}</strong></p></RouterLink>
                         </div>
                     </div>
 
@@ -41,6 +41,7 @@
 
     export default {
         name: 'DoctorDashPatients',
+        emits: ["error"], 
         data() {
             return {
                 patients: null,
@@ -57,7 +58,7 @@
                     this.patients = display_patients.patients
                 }
                 catch(error) {
-                    console.error("Error fetching patients:", error.message)                    
+                    this.$emit("error", error.message)              
                 }
             }
         },

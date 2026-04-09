@@ -31,7 +31,13 @@
                     </div>
 
                     <div>
-                        <p><strong><RouterLink :to = "`/admin/dept/${dept.department_id}`">{{ dept.name }}</RouterLink></strong></p>
+                        <p>
+                            <strong>
+                                <RouterLink :to = "`/admin/dept/${dept.department_id}`" style="color: black;">
+                                    {{ dept.name }}
+                                </RouterLink>
+                            </strong>
+                        </p>
                     </div>
                 </div>
 
@@ -80,7 +86,7 @@
                     this.$emit('success', 'Department added successfully!')
                 }
                 catch(error) {
-                    this.$emit('error', error.message || 'An error occurred')
+                    this.$emit('error', error.message)
                 }
             }
         },

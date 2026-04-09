@@ -27,7 +27,7 @@
         </div>
 
         <div class = "w-100 d-flex justify-content-center">
-            <p>Not a member? <RouterLink to="/register">Sign in</RouterLink> instead</p>
+            <p>Not a member? <RouterLink to="/register">Sign up</RouterLink> instead</p>
         </div>
     </div>
 </template>
@@ -74,7 +74,11 @@ export default {
             },
             errorHandler(message) {
                 this.errorMessage = message;
-            }
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.errorMessage = '';
+                }, 5000);
+            },
         }
     }
 

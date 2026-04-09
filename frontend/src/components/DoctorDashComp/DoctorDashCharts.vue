@@ -1,33 +1,33 @@
 <template>
-    <div class = "d-flex flex-wrap justify-content-evenly align-items-center gap-5" style="min-height: 80vh;">
+    <div class = "d-flex flex-wrap justify-content-evenly align-items-center gap-5">
         <div class = "d-flex justify-content-center align-items-center flex-column gap-2 text-center">
             <canvas id="appointmentsByMonthChart">
             </canvas>
             <h6>Month wise distribution of Appointments</h6>
         </div>
-    
+
         <div class = "d-flex justify-content-center align-items-center flex-column gap-2 w-25 text-center">
-            <canvas id="thisMonthAppointmentsByDeptChart">
-            </canvas>
-            <h6>Doctor wise distribution of this Month's Appointments</h6>
+            <!-- <div> -->
+                <canvas id="thisMonthBusiestSlotsChart">
+                </canvas>
+            <!-- </div> -->
+            <h6>Slot wise distribution of this Month's Appointments</h6>
         </div>
 
         <div class = "d-flex justify-content-center align-items-center flex-column gap-2 w-25 text-center">
-            <canvas id="thisMonthAppointmentsBydoctorsChart">
-            </canvas>
-            <h6>Doctor wise distribution of this Month's Appointments</h6>
+            <!-- <div> -->
+                <canvas id="overallBusiestSlotsChart">
+                </canvas>
+            <!-- </div> -->
+            <h6>Slot wise distribution of all Appointments</h6>
         </div>
 
         <div class = "d-flex justify-content-center align-items-center flex-column gap-2 w-25 text-center">
-            <canvas id="overallAppointmentsByDeptChart">
-            </canvas>
-            <h6>Department wise distribution of all Appointments</h6>
-        </div>
-
-        <div class = "d-flex justify-content-center align-items-center flex-column gap-2 w-25 text-center">
-            <canvas id="overallAppointmentsBydoctorsChart">
-            </canvas>
-            <h6>Doctor wise distribution of all Appointments</h6>
+            <!-- <div> -->
+                <canvas id="PatientsGenderChart">
+                </canvas>
+            <!-- </div> -->
+            <h6>Gender wise distribution of Patients</h6>
         </div>
     </div>
 </template>
@@ -47,25 +47,22 @@
                 appointmentsByMonthData: null,
                 appointmentsByMonthChart: null,
 
-                overallAppointmentsByDeptData: null, 
-                overallAppointmentsByDeptChart: null,
+                overallBusiestSlotsData: null, 
+                overallBusiestSlotsChart: null,
 
-                thisMonthAppointmentsByDeptData: null, 
-                thisMonthAppointmentsByDeptChart: null, 
+                PatientsGenderData: null, 
+                PatientsGenderChart: null, 
 
-                overallAppointmentsBydoctorsData: null,
-                overallAppointmentsBydoctorsChart: null,
-
-                thisMonthAppointmentsBydoctorsData: null,
-                thisMonthAppointmentsBydoctorsChart: null,
+                thisMonthBusiestSlotsData: null,
+                thisMonthBusiestSlotsChart: null,
             }
         },
         emits: ["error"],
         methods: {
             async getCharts() {
                 try {
-                    const patientID = this.store.user.patient_id;
-                    const results = await requestAPI("GET", null, `/patient/charts/${patientID}`)
+                    const doctorID = this.store.user.doctor_id;
+                    const results = await requestAPI("GET", null, `/doctor/charts/${doctorID}`)
                     
                     // Chart 1
                     this.appointmentsByMonthData = results.appointments_by_month
@@ -107,18 +104,18 @@
                     })
                     
                     // Chart 2
-                    this.overallAppointmentsByDeptData = results.overall_appt_by_dept
-                    const ctx2 = document.getElementById('overallAppointmentsByDeptChart').getContext('2d')
-                    const overallApptDepartments = Object.keys(this.overallAppointmentsByDeptData)
-                    const overallApptDepartmentsCount = Object.values(this.overallAppointmentsByDeptData)
+                    this.overallBusiestSlotsData = results.overall_busiest_slots
+                    const ctx2 = document.getElementById('overallBusiestSlotsChart').getContext('2d')
+                    const overallSlots = Object.keys(this.overallBusiestSlotsData)
+                    const overallSlotsCount = Object.values(this.overallBusiestSlotsData)
 
-                    this.overallAppointmentsByDeptChart = new Chart(ctx2, {
+                    this.overallBusiestSlotsChart = new Chart(ctx2, {
                         type: "pie",
                         data: {
-                            labels: overallApptDepartments,
+                            labels: overallSlots,
                             datasets: [{
-                                label: "Appointments",
-                                data: overallApptDepartmentsCount,
+                                label: "Slots",
+                                data: overallSlotsCount,
                             }],
                         },
                         options: {
@@ -134,18 +131,18 @@
                     })
 
                     // Chart 3
-                    this.overallAppointmentsBydoctorsData = results.overall_appt_by_doctors
-                    const ctx3 = document.getElementById('overallAppointmentsBydoctorsChart').getContext('2d')
-                    const overallDoctorAppointments = Object.keys(this.overallAppointmentsBydoctorsData)
-                    const overallDoctorAppointmentsCount = Object.values(this.overallAppointmentsBydoctorsData)
+                    this.thisMonthBusiestSlotsData = results.this_month_busiest_slots
+                    const ctx3 = document.getElementById('thisMonthBusiestSlotsChart').getContext('2d')
+                    const thisMonthSlots = Object.keys(this.thisMonthBusiestSlotsData)
+                    const thisMonthSlotsCount = Object.values(this.thisMonthBusiestSlotsData)
 
-                    this.overallAppointmentsBydoctorsChart = new Chart(ctx3, {
+                    this.thisMonthBusiestSlotsChart = new Chart(ctx3, {
                         type: "pie",
                         data: {
-                            labels: overallDoctorAppointments,
+                            labels: thisMonthSlots,
                             datasets: [{
-                                label: "Doctors",
-                                data: overallDoctorAppointmentsCount,
+                                label: "Slots",
+                                data: thisMonthSlotsCount,
                             }]
                         },
                         options: {
@@ -161,45 +158,18 @@
                     })
 
                     // Chart 4
-                    this.thisMonthAppointmentsByDeptData = results.this_month_appt_by_dept
-                    const ctx4 = document.getElementById('thisMonthAppointmentsByDeptChart').getContext('2d')
-                    const thisMonthApptDepartments = Object.keys(this.thisMonthAppointmentsByDeptData)
-                    const thisMonthApptDepartmentsCount = Object.values(this.thisMonthAppointmentsByDeptData)
+                    this.PatientsGenderData = results.patients_by_gender
+                    const ctx4 = document.getElementById('PatientsGenderChart').getContext('2d')
+                    const Gender = Object.keys(this.PatientsGenderData)
+                    const GenderCount = Object.values(this.PatientsGenderData)
 
-                    this.thisMonthAppointmentsByDeptChart = new Chart(ctx4, {
+                    this.PatientsGenderChart = new Chart(ctx4, {
                         type: "pie",
                         data: {
-                            labels: thisMonthApptDepartments,
+                            labels: Gender,
                             datasets: [{
-                                label: "Appointments",
-                                data: thisMonthApptDepartmentsCount,
-                            }],
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            animation: {
-                                duration: 1200,      
-                                easing: 'easeOutQuart',
-                                animateRotate: true, 
-                                animateScale: true   
-                            },
-                        }
-                    })
-
-                    // Chart 5
-                    this.thisMonthAppointmentsBydoctorsData = results.this_month_appt_by_doctors
-                    const ctx5 = document.getElementById('thisMonthAppointmentsBydoctorsChart').getContext('2d')
-                    const thisMonthApptDoctors = Object.keys(this.thisMonthAppointmentsBydoctorsData)
-                    const thisMonthApptDoctorsCount = Object.values(this.thisMonthAppointmentsBydoctorsData)
-
-                    this.thisMonthAppointmentsBydoctorsChart = new Chart(ctx5, {
-                        type: "pie",
-                        data: {
-                            labels: thisMonthApptDoctors,
-                            datasets: [{
-                                label: "Appointments",
-                                data: thisMonthApptDoctorsCount,
+                                label: "Gender",
+                                data: GenderCount,
                             }],
                         },
                         options: {

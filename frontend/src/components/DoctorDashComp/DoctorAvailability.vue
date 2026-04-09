@@ -4,7 +4,7 @@
             Provide Availability
         </button>
         <!-- modal  -->
-        <AvailabilityModal @error = "handleModalError"/>
+        <AvailabilityModal @error = "handleModalError" @success="handleModalSuccess"/>
 
         <h4>Today's Appointments ({{ todayAppt.length }})</h4>
         <div v-if = "todayAppt.length == 0">
@@ -21,10 +21,31 @@
                             <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
 
                             <div v-if="a.status == 'Booked'">
-                                <button class = "btn btn-outline-secondary">Provide Details</button>
+                                <button class = "btn btn-outline-secondary" data-bs-toggle="modal" :data-bs-target="`#ongoing-appt-modal-${a.appointment_id}`" v-on:click="selected_appt = a.appointment_id">
+                                    Provide Details
+                                </button>
+
+                                <!-- Modal  -->
+                                <OngoingAppointmentModal 
+                                :appointmentID="a.appointment_id"
+                                @treatment="giveTreatmentDetails" />
+
                                 <div class = "d-flex gap-2 mt-2">
-                                    <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">Cancel</button>
-                                    <button class = "btn btn-outline-primary">Reschedule</button>
+                                    <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">
+                                        Cancel
+                                    </button>
+
+                                    <button class="btn btn-outline-primary" data-bs-toggle="modal" :data-bs-target="`#rescheduleAppointment-${a.appointment_id}`">
+                                            Reschedule
+                                    </button>
+
+                                    <!-- modal  -->
+                                        <RescheduleAppointmentModal 
+                                        :patient_id = "a.app_patient.patient_id"
+                                        :doctor_id = "a.app_doctor.doctor_id"
+                                        :appointment_id = "a.appointment_id"
+                                        @success="handleModalSuccess"
+                                        @error="handleModalError"/>
                                 </div>
                             </div>
 
@@ -41,7 +62,7 @@
 
         <h4>This Week's Appointments ({{ thisWeekAppt.length }})</h4>
         <div v-if = "thisWeekAppt.length == 0">
-            <p>No appointments scheduled today</p>
+            <p>No appointments scheduled this week</p>
         </div>
 
         <div class = "d-flex justify-content-start flex-wrap  gap-2">
@@ -54,8 +75,21 @@
                             <p class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</p>  
                             <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>                      
                             <div class = "d-flex gap-2" v-if="a.status == 'Booked'">
-                                <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">Cancel</button>
-                                <button class = "btn btn-outline-primary">Reschedule</button>
+                                <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">
+                                    Cancel
+                                </button>
+
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal" :data-bs-target="`#rescheduleAppointment-${a.appointment_id}`">
+                                        Reschedule
+                                </button>
+
+                                <!-- modal  -->
+                                    <RescheduleAppointmentModal 
+                                    :patient_id = "a.app_patient.patient_id"
+                                    :doctor_id = "a.app_doctor.doctor_id"
+                                    :appointment_id = "a.appointment_id"
+                                    @success="handleModalSuccess"
+                                    @error="handleModalError"/>
                             </div>
                         </div>
                     </div>
@@ -65,7 +99,7 @@
 
         <h4>Past Appointments ({{ pastAppt.length }})</h4>
         <div v-if = "pastAppt.length == 0">
-            <p>No appointments scheduled today</p>
+            <p>No appointments scheduled to show</p>
         </div>
 
         <div class = "d-flex justify-content-start flex-wrap  gap-2">
@@ -93,10 +127,12 @@
     import { requestAPI } from '../../../utils/api';
     
     import AvailabilityModal from './AvailabilityModal.vue';
+    import RescheduleAppointmentModal from './RescheduleAppointmentModal.vue';
+    import OngoingAppointmentModal from './OngoingAppointmentModal.vue';
 
     export default {
         name: "DoctorAvailability",
-        emits: ['error'],
+        emits: ['error', 'success'],
         data() {
             return {
                 store: useUserStore(), 
@@ -104,15 +140,21 @@
                 todayAppt: [],
                 thisWeekAppt: [],
                 pastAppt: [],
+                selected_appt: null
             }
         },
         components: {
-            AvailabilityModal
+            AvailabilityModal,
+            RescheduleAppointmentModal,
+            OngoingAppointmentModal
         },
         methods: {
             handleModalError(message) {
-                // Propagate error to parent (DoctorDash)
-                this.$emit('error', error.message)
+                this.$emit('error', message);
+            },
+            handleModalSuccess(message) {
+                this.populateAppointments()
+                this.$emit('success', message);
             },
             async populateAppointments() {
                 try {
@@ -130,11 +172,32 @@
                 try {
                     const cancel_appointment = await requestAPI("PATCH", null, `/cancel-appointment/${appointmentID}`)
                     this.populateAppointments()
+                    this.$emit("success", "Appointment cancelled added successfully!")
                 }
                 catch(error) {
                     this.$emit("error", error.message)
                 }
-            }
+            },
+            async giveTreatmentDetails(data) {
+                const appointmentID = this.selected_appt;
+                try{
+                    const give_details = await requestAPI("POST", data, `/treatment/${appointmentID}`)
+                    if (give_details) {
+                        // Refresh data
+                        this.populateAppointments()
+                        this.selected_appt = null
+                        this.$emit("success", "Treatment Details added successfully!")
+                    } 
+                    // close modal
+                    const modalEl = document.getElementById(`ongoing-appt-modal-${appointmentID}`);
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    console.log(modal)
+                    modal.hide()
+                }
+                catch(error) {
+                    this.$emit('error', error.message)
+                }
+            },
         },
         mounted() {
             this.populateAppointments()

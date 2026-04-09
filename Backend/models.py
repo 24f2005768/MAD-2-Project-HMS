@@ -60,7 +60,6 @@ class Patient(db.Model):
     gender = db.Column(db.String)
     height = db.Column(db.String, default = '--')
     weight = db.Column(db.String, default = '--')
-    status = db.Column(db.String) # DeletedbyAdmin
 
     pfp = db.Column(db.String, db.ForeignKey('profile_pictures.name'))
     patient_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
@@ -88,7 +87,6 @@ class Department(db.Model):
     department_id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     name = db.Column(db.String, nullable = False)
     description = db.Column(db.String, default = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum')
-    status = db.Column(db.String) # DeletedbyAdmin
 
     pfp = db.Column(db.String, db.ForeignKey('profile_pictures.name'), default = "DefaultDepartment")
 
@@ -109,7 +107,6 @@ class Doctor(db.Model):
     dob = db.Column(db.Date)
     description = db.Column(db.String, default = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum')
     gender = db.Column(db.String)
-    status = db.Column(db.String) # DeletedbyAdmin
 
     pfp = db.Column(db.String, db.ForeignKey('profile_pictures.name'))
     department_id = db.Column(db.Integer, db.ForeignKey(Department.department_id))

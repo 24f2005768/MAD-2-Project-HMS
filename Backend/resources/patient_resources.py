@@ -14,23 +14,9 @@ get_parser.add_argument('past_appointment', type = str, location = 'args')
 get_parser.add_argument('upcoming_appointment', type = str, location = 'args')
 get_parser.add_argument('today_appointment', type = str, location = 'args')
 
-# cache key for patients
-def make_patient_cache_key(self, patient_id):
-    # Get user role
-    user_role = current_user.roles[0].name
-    
-    # Get query parameters
-    args = get_parser.parse_args()
-    flag1 = args.get('upcoming_appointment')
-    flag2 = args.get('past_appointment')
-    flag3 = args.get('today_appointment')
-    
-    # Create cache key
-    return f"patient_{patient_id}_cached_for_user_{current_user.user_id}_{user_role}_upcoming_{flag1}_past_{flag2}__today_{flag3}"
-
 class PatientResources(Resource):
     @auth_required("token")
-    @cache.cached(make_cache_key = make_patient_cache_key)
+    @cache.memoize()
     def get(self, patient_id):
         patient = Patient.query.filter(Patient.patient_id == patient_id).first()
         if not patient:
@@ -87,6 +73,19 @@ class PatientResources(Resource):
         invalidate_patient_caches(patient_id)
 
         if patient:
+            patient_user = patient.patient_user
+            db.session.delete(patient_user)
+
+            # delete all slots of patient
+            patient_slots = Slots.query.filter(Slots.patient_id == patient_id).all()
+            for s in patient_slots:
+                db.session.delete(s)
+
+            # delete all appts of doctor
+            patient_appts = Appointment.query.filter(Appointment.patient_id == patient_id).all()
+            for a in patient_appts:
+                db.session.delete(a)
+
             db.session.delete(patient)
             db.session.commit()
             return 200
@@ -153,7 +152,7 @@ class PatientResources(Resource):
         
 class AllPatientResources(Resource):
     @auth_required("token")
-    @cache.memoize(args_to_ignore=["self"])
+    @cache.memoize()
     def get(self):
         all_patients = Patient.query.all()
         return marshal(all_patients, patient_fields), 200

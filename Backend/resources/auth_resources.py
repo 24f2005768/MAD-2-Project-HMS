@@ -41,6 +41,9 @@ class LoginResource(Resource):
             return {"message": "Invalid Username or Password"}, 404
         login_user(user)   
 
+        if user.blacklisted == True:
+            return {"message": "You are currently blacklisted, please contact Admin to login"}, 404
+        
         response_data = marshal(user, user_fields)
         
         # Add role-specific IDs
@@ -55,6 +58,9 @@ class LoginResource(Resource):
 class LogoutResource(Resource):
     @auth_required("token")
     def post(self):
+        # Clear any cache before logging out
+        cache.clear()
+        
         logout_user()
 
 class RegisterResource(Resource):
@@ -96,6 +102,16 @@ class RegisterResource(Resource):
             patient = Patient(name = name, gender = gender, dob = dob, 
                                     height = height, weight = weight)
             user.user_patient = patient
+
+            # add pfp
+            m_pfp = db.get_or_404(ProfilePictures, 6)
+            f_pfp = db.get_or_404(ProfilePictures, 5)
+
+            if gender == "Male":
+                patient.pfp = m_pfp.name
+            elif gender == "Female":
+                patient.pfp = f_pfp.name
+
             db.session.commit()
 
             # clear cache 

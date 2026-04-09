@@ -1,6 +1,4 @@
 <template>
-    <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
-
     <!-- Modal -->
     <div class="modal fade" id="availModel" tabindex="-1" v-if="availabilityDict">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -30,8 +28,8 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" v-on:click="sendUpdatedStatus">Save changes</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-primary" v-on:click="sendUpdatedStatus">Save changes</button>
                 </div>
             </div>
         </div>
@@ -41,20 +39,15 @@
 <script>
     import { requestAPI } from '../../../utils/api';
     import { useUserStore } from '@/stores/userStore';
-    import errorToast from '@/components/errorToast.vue';
 
     export default {
         name: "DoctorAvailabilityModal",
-        emits: ["error"],
+        emits: ["error", "success"],
         data() {
             return {
                 availabilityDict: null,
                 store: useUserStore(),
-                errorMessage: ""
             }
-        },
-        components: {
-            errorToast
         },
         methods: {
             async getAvailability() {
@@ -64,7 +57,6 @@
                     this.availabilityDict = availability
                 }
                 catch(error) {
-                    // Propagate error to parent (DoctorAvailability)
                     this.$emit('error', error.message)
                 }
             },
@@ -74,9 +66,10 @@
                     const body = this.availabilityDict
                     const send_updated_availability = await requestAPI("PATCH", body, `/doctor/availability/${doctorID}`)
                     await this.getAvailability()
+                    this.$emit('success', "Availability updated successfully!")
+                    bootstrap.Modal.getInstance(document.getElementById("availModel")).hide()
                 }
                 catch(error) {
-                    // Propagate error to parent (DoctorAvailability)
                     this.$emit('error', error.message)
                 }
             }

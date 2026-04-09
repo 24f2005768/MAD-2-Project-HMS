@@ -22,7 +22,13 @@
                 </div>
 
                 <div>
-                    <p><strong><RouterLink :to = "`/admin/patient/${patient.patient_id}`">{{ patient.name }}</RouterLink></strong></p>
+                    <p>
+                        <strong>
+                            <RouterLink :to = "`/admin/patient/${patient.patient_id}`" style="color: black;">
+                                {{ patient.name }}
+                            </RouterLink>
+                        </strong>
+                    </p>
                 </div>
             </div>
 

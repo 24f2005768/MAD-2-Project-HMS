@@ -1,6 +1,7 @@
 <template>
     <div class="container d-flex align-items-start flex-grow-1 min-vh-90 min-vw-100">
         <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
+        <successToast v-if="successMessage" :message="successMessage" @close="successMessage = ''"/>
 
         <div class = 'container'>
             <div class = 'col'>
@@ -30,22 +31,22 @@
                     
                     <!-- Home  -->
                     <div class="tab-pane fade show active w-100" id="v-tab-home" role="tabpanel">
-                        <DoctorProfile v-if="tabshown == 'home'" @error = "errorHandler"/>
+                        <DoctorProfile v-if="tabshown == 'home'" @error = "errorHandler" @success="successHandler"/>
                     </div>
 
                     <!-- Stats -->
                     <div class="tab-pane fade w-100" id="v-tab-stats" role="tabpanel">
-                        Second v-show="tabshown == 'stats'" 
+                        <DoctorDashCharts v-show="tabshown == 'charts'" @error = "errorHandler"/>
                     </div>
 
                     <!-- Patients  -->
                     <div class="tab-pane fade w-100" id="v-tab-patients" role="tabpanel">
-                        <DoctorDashPatients v-show="tabshown == 'patients'" />
+                        <DoctorDashPatients v-show="tabshown == 'patients'" @error = "errorHandler" @success="successHandler"/>
                     </div>
 
                     <!-- Availability and Appointments  -->
                     <div class="tab-pane fade w-100" id="v-tab-appt" role="tabpanel">
-                        <DoctorAvailability v-if="tabshown == 'appts'" @error="errorHandler"/>
+                        <DoctorAvailability v-if="tabshown == 'appts'" @error="errorHandler" @success="successHandler"/>
                     </div>
                 </div>
             </div>
@@ -55,9 +56,11 @@
 
 <script>
     import errorToast from '@/components/errorToast.vue';
+    import successToast from '@/components/successToast.vue';
     
-    import DoctorDashPatients from '@/components/DoctorDashComp/DoctorDashPatients.vue';
     import DoctorProfile from '@/components/DoctorDashComp/DoctorProfile.vue';
+    import DoctorDashCharts from '@/components/DoctorDashComp/DoctorDashCharts.vue';
+    import DoctorDashPatients from '@/components/DoctorDashComp/DoctorDashPatients.vue';
     import DoctorAvailability from '@/components/DoctorDashComp/DoctorAvailability.vue';
     
     export default {
@@ -65,6 +68,7 @@
         data() {
             return {
                 errorMessage: "",
+                successMessage: "",
                 tabshown: 'home'
             }
         },
@@ -72,11 +76,24 @@
             errorToast,
             DoctorProfile,
             DoctorDashPatients,
-            DoctorAvailability
+            DoctorAvailability,
+            successToast,
+            DoctorDashCharts
         },
         methods: {
             errorHandler(message) {
-                this.errorMessage = message
+                this.errorMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.errorMessage = '';
+                }, 5000);
+            },
+            successHandler(message) {
+                this.successMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.successMessage = '';
+                }, 5000);
             }
         }
     }

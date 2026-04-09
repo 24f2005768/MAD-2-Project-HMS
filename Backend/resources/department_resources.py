@@ -17,19 +17,6 @@ parser = reqparse.RequestParser()
 parser.add_argument("name", type = str, required = True)
 parser.add_argument("description", type = str)
 
-# cache key for departments
-def make_dept_cache_key(self, dept_id):
-    # Get user role
-    user_role = current_user.roles[0].name
-    
-    # Get query parameters
-    args = get_parser.parse_args()
-    flag1 = args.get('upcoming_appointment')
-    flag2 = args.get('past_appointment')
-    
-    # Create cache key
-    return f"dept_{dept_id}_cached_for_user_{current_user.user_id}_{user_role}_upcoming_{flag1}_past_{flag2}"
-
 class DepartmentResources(Resource):
     @auth_required("token")
     @roles_required("Admin")
@@ -53,7 +40,7 @@ class DepartmentResources(Resource):
         return marshal(dept, department_fields), 200
     
     @auth_required("token")
-    @cache.cached(make_cache_key = make_dept_cache_key)
+    @cache.memoize()
     def get(self, dept_id):
         print(f"Caching department {dept_id} for user {current_user.user_id}")
         dept = Department.query.filter(Department.department_id == dept_id).first()
@@ -98,7 +85,27 @@ class DepartmentResources(Resource):
     @roles_required("Admin")
     def delete(self, dept_id):
         dept = Department.query.filter(Department.department_id == dept_id).first()
+
         if dept:
+            for doctor in dept.doctors:
+
+                # delete doctor as user
+                doctor_user = doctor.doctor_user
+                db.session.delete(doctor_user)
+
+                # delete all slots of doctor
+                doctor_slots = Slots.query.filter(Slots.doctor_id == doctor.doctor_id).all()
+                for s in doctor_slots:
+                    db.session.delete(s)
+
+                # delete all appts of doctor
+                doctor_appts = Appointment.query.filter(Appointment.doctor_id == doctor.doctor_id).all()
+                for a in doctor_appts:
+                    db.session.delete(a)
+
+                # delete doctor
+                db.session.delete(doctor)
+            
             db.session.delete(dept)
             db.session.commit()
 
@@ -127,8 +134,7 @@ class DepartmentResources(Resource):
 
 class AllDepartmentResources(Resource):
     @auth_required("token")
-    @cache.memoize(args_to_ignore=["self"])
+    @cache.memoize()
     def get(self):
-        print("All departments cached")
         all_dept = Department.query.all()
         return marshal(all_dept, department_fields)

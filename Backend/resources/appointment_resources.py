@@ -21,7 +21,6 @@ parser.add_argument("treatment", type = str)
 
 # get the particular 15-15 minutes slots for this particular doctor and selected shift
 class SelectShift(Resource):
-    @cache.memoize()
     def get(self, doctor_id, shift_id):
         # print(shift_id)
         shift = Shift.query.filter(Shift.id == shift_id).first()
@@ -73,7 +72,6 @@ class BookAppointment(Resource):
 
         # Clear cache
         invalidate_appointment_caches(doctor_id = slot.doctor_id, patient_id = slot.patient_id)
-        invalidate_shift_caches(doctor_id  =slot.doctor_id, shift_id = slot.shift_id)
 
         return marshal(slot, slot_fields), 200
 
@@ -112,7 +110,7 @@ class AppointmentResources(Resource):
 
 class AllAppointmentResources(Resource):
     @auth_required("token")
-    @cache.memoize(args_to_ignore=["self"])
+    @cache.memoize()
     def get(self):
         results = {"past_appointments": {}, "upcoming_appointments": {}}
 
@@ -141,7 +139,9 @@ class CancelAppointment(Resource):
             appointment.status = f"Cancelled by Admin"
 
         # Clear cache for this specific appointment and all appointments list
-        invalidate_appointment_caches(appointment_id, doctor_id, patient_id)
+        invalidate_appointment_caches(appointment_id, appointment.app_doctor.doctor_id, appointment.app_patient.patient_id)
+        invalidate_patient_caches(appointment.app_patient.patient_id)
+        invalidate_doctor_caches(appointment.app_doctor.doctor_id)
 
         db.session.commit()
         return marshal(appointment, appointment_fields), 200
@@ -156,6 +156,11 @@ class RescheduleAppointment(Resource):
             patient_id = current_user.user_patient.patient_id
             patient = db.get_or_404(Patient, patient_id)
             appointment.status = f"Rescheduled by {patient.name}"
+
+        elif current_user.has_role("Doctor"):
+            doctor_id = current_user.user_doctor.doctor_id
+            doctor = db.get_or_404(Doctor, doctor_id)
+            appointment.status = f"Rescheduled by Dr. {doctor.name}"
 
         data = request.get_json()
         new_slot_id = data["slot_id"]

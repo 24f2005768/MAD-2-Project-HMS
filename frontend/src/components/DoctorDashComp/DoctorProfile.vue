@@ -90,9 +90,17 @@
                                             Cancel
                                         </button>
 
-                                        <button class = "btn btn-outline-primary">
+                                        <button class="btn btn-outline-primary" data-bs-toggle="modal" :data-bs-target="`#rescheduleAppointment-${a.appointment_id}`">
                                             Reschedule
                                         </button>
+
+                                        <!-- modal  -->
+                                        <RescheduleAppointmentModal 
+                                        :patient_id = "a.app_patient.patient_id"
+                                        :doctor_id = "a.app_doctor.doctor_id"
+                                        :appointment_id = "a.appointment_id"
+                                        @success="handleModalSuccess"
+                                        @error="handleModalError"/>
                                     </div>
                                 </div>
 
@@ -120,9 +128,11 @@
 
     import DoctorProfileUpdateModal from './DoctorProfileUpdateModal.vue';
     import OngoingAppointmentModal from './OngoingAppointmentModal.vue';
+    import RescheduleAppointmentModal from './RescheduleAppointmentModal.vue';
 
     export default {
         name: "DoctorProfile",
+        emits: ["error", "suceess"],
         data() {
             return {
                 store: useUserStore(),
@@ -134,7 +144,8 @@
         },
         components: {
             DoctorProfileUpdateModal,
-            OngoingAppointmentModal
+            OngoingAppointmentModal,
+            RescheduleAppointmentModal
         },
         methods: {
             async getDoctor() {
@@ -181,6 +192,7 @@
                         // Refresh doctor data
                         this.getDoctor()
                         this.selected_appt = null
+                        this.$emit("success", "Treatment Details added successfully!")
                     } 
                     // close modal
                     const modalEl = document.getElementById(`ongoing-appt-modal-${appointmentID}`);
@@ -197,13 +209,32 @@
                     const doctorID = this.store.user.doctor_id;
                     const send_history = await requestAPI("GET", null, `/doctor/monthly-report/${doctorID}`)
 
-                    if (send_history) {
-                        this.$emit('success', "Your report was sent successfully! Please check your inbox.")
+                    this.$emit('success', "Generating your report.")
+
+                    const poll = () => {
+                        fetch(`http://localhost:5000/api/backend-task/${send_history.task_id}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data['ready'] == true) {
+                                this.$emit('success', "Your report was sent successfully! Please check your inbox.")
+                            } else {
+                                setTimeout(poll, 1000)
+                            }
+                        })
                     }
+
+                    setTimeout(poll, 2000)
                 }
                 catch(error) {
                     this.$emit('error', error.message)
                 }
+            },
+            handleModalError(message) {
+                this.$emit('error', message);
+            },
+            handleModalSuccess(message) {
+                this.getDoctor()
+                this.$emit('success', message);
             },
         },
         mounted() {

@@ -4,6 +4,7 @@ from flask_security import auth_required, roles_required, current_user
 from datetime import date, timedelta, time
 from flask_restful import Resource, marshal, reqparse
 from sqlalchemy import desc
+from celery.result import AsyncResult
 
 from models import *
 from caching_config import *
@@ -33,27 +34,6 @@ parser.add_argument("description", type = str)
 parser.add_argument("gender", type = str)
 parser.add_argument("status", type = str)
 parser.add_argument("department", type = int, required = True)
-
-# cache key for doctors
-def make_doctor_cache_key(self, doctor_id):
-    # Get user role
-    user_role = current_user.roles[0].name
-    
-    # Get query parameters
-    args = get_parser.parse_args()
-    flag1 = args.get('upcoming_appointment')
-    flag2 = args.get('past_appointment')
-    flag3 = args.get('availability')
-    flag4 = args.get('today_appointment')
-    flag5 = args.get('patients')
-    
-    # Create cache key
-    return f"doctor_{doctor_id}_cached_for_user_{current_user.user_id}_{user_role}_upcoming_{flag1}_past_{flag2}_availability_{flag3}_today_{flag4}_patients_{flag5}"
-
-# cache key for appointments of a particular doctor
-def make_appointments_cache_key(doctor_id):
-    user_role = current_user.roles[0].name 
-    return f"doctor_appointments_{doctor_id}_user_{current_user.user_id}_{user_role}"
 
 class DoctorResources(Resource):
     @auth_required("token")
@@ -109,8 +89,16 @@ class DoctorResources(Resource):
         m_pfp = db.get_or_404(ProfilePictures, 6)
         f_pfp = db.get_or_404(ProfilePictures, 5)
 
-        
+        if gender == "Male":
+            doctor.pfp = m_pfp.name
+        elif gender == "Female":
+            doctor.pfp = f_pfp.name
+
         db.session.commit()
+
+        # send email
+        message = f"Hi, {name}. Your username is {user_name} and password is {user_password}."
+        reminders.send_email(email, "Welcome Mail", message=message)
 
         # Clear cache for all doctors list
         invalidate_doctor_caches()
@@ -118,7 +106,7 @@ class DoctorResources(Resource):
         return marshal(doctor, doctor_fields), 201
     
     @auth_required("token")
-    @cache.cached(make_cache_key = make_doctor_cache_key)
+    @cache.memoize()
     def get(self, doctor_id):
 
         doctor = Doctor.query.filter(Doctor.doctor_id == doctor_id).first()
@@ -233,7 +221,23 @@ class DoctorResources(Resource):
         invalidate_doctor_caches(doctor_id)
 
         if doctor:
+            # delete doctor as user
+            doctor_user = doctor.doctor_user
+            db.session.delete(doctor_user)
+
+            # delete all slots of doctor
+            doctor_slots = Slots.query.filter(Slots.doctor_id == doctor_id).all()
+            for s in doctor_slots:
+                db.session.delete(s)
+
+            # delete all appts of doctor
+            doctor_appts = Appointment.query.filter(Appointment.doctor_id == doctor_id).all()
+            for a in doctor_appts:
+                db.session.delete(a)
+
+            # delete doctor
             db.session.delete(doctor)
+
             db.session.commit()
             return 200
         return {"message": "Doctor does not exist"}, 404
@@ -298,7 +302,7 @@ class DoctorResources(Resource):
         
 class AllDoctorResources(Resource):
     @auth_required("token")
-    @cache.memoize(args_to_ignore=["self"])
+    @cache.memoize()
     def get(self):
         args = get_parser.parse_args()
         flag = args.get('limit')
@@ -390,13 +394,16 @@ class Availability(Resource):
                     if (d["original_availability"] == 1) and (d["updated_availability"] == 0):
                         d_dt = datetime.strptime(d["date"], "%d-%m-%Y")
                         shift = Shift.query.filter(Shift.date == d_dt, Shift.name == d["name"]).first()
-                        all_slots = Slots.query.filter(Slots.shift_id == shift.id).all()
-                        for slot in all_slots:
-                            # mark any appointments as cancelled
-                            db.session.delete(slot)
-                        
-                        # remove from database
-                        doctor.doctor_shift.remove(shift)
+                        if shift in doctor.doctor_shift:
+                            all_slots = Slots.query.filter(Slots.shift_id == shift.id, Slots.doctor_id == doctor_id).all()
+                            for slot in all_slots:
+                                # delete any appointments
+                                if slot.slots_app:
+                                    db.session.delete(slot.slots_app)
+                                db.session.delete(slot)
+                            
+                            # remove from database
+                            doctor.doctor_shift.remove(shift)
             db.session.commit()
         
         # Clear cache for this specific doctor and all doctors list
@@ -406,7 +413,7 @@ class Availability(Resource):
 
 class DoctorAppointments(Resource):
     @auth_required("token")
-    @cache.cached(make_cache_key = make_appointments_cache_key)
+    @cache.memoize()
     def get(self, doctor_id):
         # Check if user has permission to view this doctor
         # Admins can view any doctor, doctors can only view themselves
@@ -433,5 +440,10 @@ class DoctorMonthlyReport(Resource):
     @auth_required("token")
     @roles_required("Doctor")
     def get(self, doctor_id):
-        result = reminders.monthly_report_doctor(doctor_id = doctor_id)
-        return result, 200
+        result = reminders.monthly_report_doctor.delay(doctor_id = doctor_id)
+        return {"message": "Generating report!", "task_id": result.id}, 200
+    
+class BackendTaskResult(Resource):
+    def get(self, task_id):
+        result = AsyncResult(task_id)
+        return {"ready": result.ready()}, 200

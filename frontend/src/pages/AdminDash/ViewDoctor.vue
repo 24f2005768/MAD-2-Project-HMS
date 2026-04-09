@@ -1,5 +1,8 @@
 <template>
     <div class="container d-flex align-items-start flex-grow-1 min-vh-90 min-vw-100">
+        <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
+        <successToast v-if="successMessage" :message="successMessage" @close="successMessage = ''"/>
+
         <div class = 'container'>
             <div class = 'col'>
                 <div class="nav nav-tab me-3 my-auto d-flex align-items-center justify-content-center" id="v-tab-tab" role="tablist" aria-orientation="vertical">
@@ -23,13 +26,6 @@
                 <div class = 'container'>
                     <div class = "d-flex justify-content-between">
                         <h2>Doctor Profile</h2>
-
-                        <!-- <div class = "d-flex gap-1">
-                            <button class = "btn btn-primary" v-show = "blacklist_button" v-on:click="changeBlacklistStatus">Blacklist</button>
-                            <button class = "btn btn-primary" v-show = "undo_blacklist_button" v-on:click="changeBlacklistStatus"> Undo Blacklist</button>
-                            <button class = "btn btn-primary" type = "button" data-bs-toggle="modal" data-bs-target="#exampleModal">Update</button>
-                            <button class = "btn btn-primary" v-on:click="deleteDoctor">Delete</button>
-                        </div> -->
 
                         <div class = "d-flex gap-1">
                             <button class = "btn btn-outline-danger" v-show = "blacklist_button" v-on:click="changeBlacklistStatus">
@@ -58,6 +54,7 @@
                         
                         <div class = 'col'>
                             <h3 v-show = "blacklist_status">This user is currently blacklisted</h3>
+                            <p><strong>Doctor ID:</strong> {{ doctor.doctor_id }}</p>
                             <p><strong>Contact Number:</strong> {{ doctor.doctor_user.contact_number }}</p>
                             <p><strong>Email:</strong> {{ doctor.doctor_user.email }}</p>
                             <p><strong>DOB:</strong> {{ doctor.dob }}</p>
@@ -114,8 +111,8 @@
                                 </div>
                                 
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-outline-primary">Update Doctor</button>
                                 </div>
                             </form>
 
@@ -127,8 +124,8 @@
                 <div class="tab-content d-flex flex-grow-1" id="v-tab-tabContent">
                     
                     <!-- Availability  -->
-                    <div class="tab-pane fade show active w-100" id="v-tab-home" role="tabpanel">
-                        <table class = "table table-striped table-hover">
+                    <div class="tab-pane fade show active w-100 mt-3" id="v-tab-home" role="tabpanel">
+                        <table class = "w-75 mx-auto table table-striped table-hover table-bordered">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -146,29 +143,47 @@
                             </tbody>
                         </table>
                     </div>
-
                     <!-- Upcoming Appointments -->
                     <div class="tab-pane fade w-100" id="v-tab-profile" role="tabpanel">
                        <!-- card for each appointment  -->
-                        <div v-if="doctor.upcoming_appointment.length != 0" class = "d-flex justify-content-start flex-wrap  gap-2">
+                        <div v-if="doctor.upcoming_appointment.length != 0 || doctor.today_appointment.length != 0" class = "d-flex justify-content-start flex-wrap  gap-2">
+                            <!-- Today's appointments -->
+                            <div v-for="a in doctor.today_appointment">
+                                <div class="card" style="min-height: 220px; max-width: 222px;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ a.app_patient.name }}</h5>
+                                        <!-- <h6 class = "card-title">Dr. {{ a.app_doctor.name }}</h6> -->
+                                        <div class = "border-top">
+                                            <p class="card-text mb-2 mt-2"><strong>Appt. ID: </strong>{{ a.appointment_id }}</p> 
+                                            <p class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</p> 
+                                            <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
+                                            <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
+                                            <button v-if="a.status == 'Booked'" class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div v-for="a in doctor.upcoming_appointment">
                                 <div class="card" style="min-height: 220px; max-width: 222px;">
                                     <div class="card-body">
                                         <h5 class="card-title">{{ a.app_patient.name }}</h5>
                                         <!-- <h6 class = "card-title">Dr. {{ a.app_doctor.name }}</h6> -->
                                         <div class = "border-top">
+                                            <p class="card-text mb-2 mt-2"><strong>Appt. ID: </strong>{{ a.appointment_id }}</p> 
                                             <p class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</p> 
                                             <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
                                             <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
-                                            <button class = "btn btn-outline-secondary">View Details</button>
+                                            <button v-if="a.status == 'Booked'" class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">Cancel</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
                         </div>
 
                         <div v-else>
-                            <p>No past appointments to show</p>
+                            <p>No upcoming appointments to show</p>
                         </div>
                     </div>
 
@@ -182,10 +197,15 @@
                                         <h5 class="card-title">{{ a.app_patient.name }}</h5>
                                         <!-- <h6 class = "card-title">Dr. {{ a.app_doctor.name }}</h6> -->
                                         <div class = "border-top">
+                                            <p class="card-text mb-2 mt-2"><strong>Appt. ID: </strong>{{ a.appointment_id }}</p> 
                                             <p class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</p> 
                                             <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
                                             <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
-                                            <button class = "btn btn-outline-secondary">View Details</button>
+                                            <button class = "btn btn-outline-secondary">
+                                                <RouterLink :to = '`/admin/appointment/${a.appointment_id}`' style="color: black; text-decoration: none;">
+                                                    View Details
+                                                </RouterLink>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -205,9 +225,13 @@
 
 <script>
     import { requestAPI } from '../../../utils/api';
+
+    import errorToast from '@/components/errorToast.vue';
+    import successToast from '@/components/successToast.vue';
     
     export default {
         name: 'ViewDoctor',
+        emits: ['error', 'success'],
         data() {
             return {
                 doctor: null, 
@@ -220,36 +244,47 @@
                 email: null,
                 blacklist_status: null,
                 blacklist_button: null,
-                undo_blacklist_button: null
+                undo_blacklist_button: null,
+                errorMessage: null,
+                successMessage: null
             }
+        },
+        components: {
+            errorToast,
+            successToast
         },
         methods: {
             async getDoctor() {
-                const doctorID = this.$route.params.did;
-                const display_doctor = await requestAPI('GET', null, `/doctor/${doctorID}?past_appointment=true&upcoming_appointment=true&availability=true`)
-                this.doctor = display_doctor
-                
-                // check if there are any upcoming appointments
-                if (this.doctor.upcoming_appointment.length != 0) {
-                    this.ua = true
-                }
+                try {
+                    const doctorID = this.$route.params.did;
+                    const display_doctor = await requestAPI('GET', null, `/doctor/${doctorID}?past_appointment=true&upcoming_appointment=true&today_appointment=true&availability=true`)
+                    this.doctor = display_doctor
+                    
+                    // check if there are any upcoming appointments
+                    if (this.doctor.upcoming_appointment.length != 0) {
+                        this.ua = true
+                    }
 
-                // check if there are any past appointments
-                if (this.doctor.past_appointment.length != 0) {
-                    this.pa = true
-                }
+                    // check if there are any past appointments
+                    if (this.doctor.past_appointment.length != 0) {
+                        this.pa = true
+                    }
 
-                // if the doctor is blacklisted, show the undo_blacklist_button
-                if (this.doctor.doctor_user.blacklisted == true) {
-                    this.blacklist_status = true
-                    this.blacklist_button = false
-                    this.undo_blacklist_button = true
+                    // if the doctor is blacklisted, show the undo_blacklist_button
+                    if (this.doctor.doctor_user.blacklisted == true) {
+                        this.blacklist_status = true
+                        this.blacklist_button = false
+                        this.undo_blacklist_button = true
+                    }
+                    // if the doctor is not blacklisted, show the blacklist_button
+                    else {
+                        this.blacklist_status = false
+                        this.blacklist_button = true
+                        this.undo_blacklist_button = false
+                    }
                 }
-                // if the doctor is not blacklisted, show the blacklist_button
-                else {
-                    this.blacklist_status = false
-                    this.blacklist_button = true
-                    this.undo_blacklist_button = false
+                catch(error) {
+                    this.errorHandler(error.message)
                 }
             },
 
@@ -265,9 +300,11 @@
                     }
 
                     const update_doctor = await requestAPI('PATCH', data, `/doctor/${doctorID}`)
+                    this.successMessage =  "Doctor updated successfully"
+                    bootstrap.Modal.getInstance(document.getElementById('update-doctor-modal')).hide()
                 }
                 catch(error) {
-                    console.error('Error updating doctor:', error)
+                    this.errorHandler(error.message)
                 }
             },
 
@@ -275,10 +312,11 @@
                 try {
                     const doctorID = this.$route.params.did;
                     const delete_doctor = await requestAPI('DELETE', null, `/doctor/${doctorID}`)
-                    console.log('deleted')
+                    this.successHandler("Doctor deleted successfully!")
+                    this.$router.push("/admin")
                 }
                 catch(error) {
-                    console.error('Error deleting doctor:', error)
+                    this.errorHandler(error.message)
                 }
             },
 
@@ -293,9 +331,34 @@
                     this.getDoctor()
                 }
                 catch(error) {
-                    console.error("Error blacklisting doctor:", error)
+                    this.errorHandler(error.message)
                 }
-            }
+            },
+            async cancelAppointment(appointmentID) {
+                try {
+                    const cancel_appointment = await requestAPI("PATCH", null, `/cancel-appointment/${appointmentID}`)
+                    this.getDoctor()
+                    this.successHandler("Appointment cancelled successfully!")
+                }
+                catch(error) {
+                    this.errorHandler(error.message)
+                }
+            },
+            errorHandler(message) {
+                this.errorMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.errorMessage = '';
+                }, 5000);
+            },
+            successHandler(message) {
+                this.getDoctor()
+                this.successMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.successMessage = '';
+                }, 5000);
+            },
         },
         mounted() {
             this.getDoctor()

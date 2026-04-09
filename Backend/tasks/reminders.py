@@ -16,7 +16,6 @@ from email import encoders
 from jinja2 import Template
 from pathlib import Path
 import csv
-from weasyprint import HTML
 
 SMTP_SERVER_HOST = "localhost"
 SMTP_SERVER_PORT = 1025
@@ -151,26 +150,3 @@ def monthly_report_doctor(doctor_id):
     message = template.render(appt = prev_month_appts, doctor = doctor, report_message = report_message, now = now)
     send_email(doctor.doctor_user.email, f"Monthly Report {datetime.strftime(now, "%B")}", message = message)
 
-# PDF
-# @shared_task()
-# def monthly_report_doctors(doctor_id):
-#     doctor = db.get_or_404(Doctor, doctor_id)
-#     prev_month_dates = [(date.today() + timedelta(days = -i)) for i in range(32)]
-#     prev_month_appts = []
-#     for d in prev_month_dates:
-#         prev_month_appts += Appointment.query.filter(Appointment.date == d, Appointment.doctor_id == doctor.doctor_id).all()
-
-#     reports_folder = Path(__file__).parent.parent / "reports"  # Backend/reports
-
-#     script_dir = Path(__file__).parent
-#     template_path = script_dir / "monthly_report.html"
-
-#     with open(template_path) as file:
-#         template = Template(file.read())
-
-#     for doctor in doctors:
-#         filename = f"{doctor.name}_monthly_report.pdf"
-#         message = template.render(data = "Testing Celery", doctor = doctor)
-#         html = HTML(string = message)
-#         html.write_pdf(target = reports_folder/filename)
-#         send_email(doctor.doctor_user.email, "Testing Periodic Mails", message = "", attachment = filename)

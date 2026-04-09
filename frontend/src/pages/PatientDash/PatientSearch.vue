@@ -3,7 +3,7 @@
         <div class = 'container'>
             <div class = 'col'>
                 <div class="nav nav-tab me-3 my-auto d-flex align-items-center justify-content-center" id="v-tab-tab" role="tablist" aria-orientation="vertical">
-                    <button class="nav-link" id="v-tab-settings-tab" data-bs-toggle="pill" data-bs-target="#v-tab-settings" type="button" role="tab">
+                    <button class="nav-link active" id="v-tab-settings-tab" data-bs-toggle="pill" data-bs-target="#v-tab-settings" type="button" role="tab">
                         Name ({{ lengthName }})
                     </button>
 

@@ -35,12 +35,15 @@
                             <h6>{{ slot.date }} - {{ slot.start_time }} - {{ slot.end_time }} ({{ slot.slots_shifts.name }})</h6>
                         </div>
                     </div>
-
+                    {{ selectedPatientID }}
                     <div class="input-group mb-3">
-                        <label class="input-group-text" for="inputGroupSelect02">Patients</label>
-                        <select class="form-select" id="inputGroupSelect02" v-model="selectedPatientID">
+                        <label class="input-group-text" for="inputGroupSelect01">Patients</label>
+                        <select class="form-select" id="inputGroupSelect01" v-model="selectedPatientID">
                             <option selected disabled value="">Please select a patient</option>
-                            <option v-for = "patient in all_patients" :key = "patient.patient_id" :value = "patient.patient_id">{{ patient.name }}</option>
+                            <template v-for = "patient in all_patients" :key = "patient.patient_id">
+                                <option v-if="patient.patient_user.blacklisted == false" :value = "patient.patient_id">{{ patient.name }}</option>
+                                <option disabled="" v-if="patient.patient_user.blacklisted == true">{{ patient.name }}</option>
+                            </template>
                         </select>
                     </div>
 
@@ -48,7 +51,10 @@
                         <label class="input-group-text" for="inputGroupSelect02">Doctors</label>
                         <select class="form-select" id="inputGroupSelect02" v-model="selectedDoctorID">
                             <option selected disabled value="">Please select a doctor</option>
-                            <option v-for = "doctor in all_doctors" :key = "doctor.doctor_id" :value = "doctor.doctor_id">{{ doctor.name }}</option>
+                            <template v-for = "doctor in all_doctors" :key = "doctor.doctor_id">
+                                <option v-if="doctor.doctor_user.blacklisted == false" :value = "doctor.doctor_id">{{ doctor.name }}</option>
+                                <option disabled="" v-if="doctor.doctor_user.blacklisted == true">{{ doctor.name }}</option>
+                            </template>
                         </select>
                     </div>
 
@@ -77,8 +83,8 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button v-if="doctor && slot && shift" type="button" class="btn btn-primary" v-on:click="ConfirmBooking()">Book</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button v-if="doctor && slot && shift" type="button" class="btn btn-outline-primary" v-on:click="ConfirmBooking()">Book</button>
                 </div>
             </div>
         </div>
@@ -124,6 +130,7 @@
                     }
                     const selected_slot = await requestAPI("PATCH", data, `/book-appointment/${this.slot.id}`)
                     this.$emit("success", "Appointment booked successfully!")
+                    bootstrap.Modal.getInstance(document.getElementById("bookAppointment")).hide()
                 }
                 catch(error) {
                     console.log(error)
@@ -148,7 +155,7 @@
                 }
             },
             async selectedPatientID(newVal, oldVal) {
-                this.selectedPatientID = ""
+                // this.selectedPatientID = ""
 
                 if (newVal) {
                     const selected_patient_modal = await requestAPI("GET", null, `/patient/${newVal}`)
@@ -175,7 +182,7 @@
                         const selected_slot = await requestAPI("GET", null, `/book-appointment/${newVal}`)
                         this.slot = selected_slot
                     } catch(error) {
-                        console.error('Error fetching selected slot', error)
+                        this.$emit("error", error.message)
                     }
                 }
             }

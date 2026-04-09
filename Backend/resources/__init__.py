@@ -2,12 +2,12 @@ from flask import Blueprint
 from flask_restful import Api
 
 from resources.auth_resources import LoginResource, RegisterResource, LogoutResource
-from resources.doctor_resources import DoctorResources, AllDoctorResources, Availability, DoctorAppointments, DoctorMonthlyReport
+from resources.doctor_resources import DoctorResources, AllDoctorResources, Availability, DoctorAppointments, DoctorMonthlyReport, BackendTaskResult
 from resources.patient_resources import PatientResources, AllPatientResources, PatientTreatmentHistory
 from resources.appointment_resources import AppointmentResources, AllAppointmentResources, SelectShift, BookAppointment, CancelAppointment, RescheduleAppointment, TreatmentResources
 from resources.department_resources import DepartmentResources, AllDepartmentResources
 from resources.search_resources import AdminSearch, DoctorSearch, PatientSearch
-from resources.chart_resources import AdminChartsResources, PatientChartsResources
+from resources.chart_resources import AdminChartsResources, PatientChartsResources, DoctorChartsResource
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 api = Api(api_bp)
@@ -49,3 +49,7 @@ api.add_resource(PatientSearch, "/patient/search")
 # Chart Routes 
 api.add_resource(AdminChartsResources, "/admin/charts")
 api.add_resource(PatientChartsResources, "/patient/charts/<int:patient_id>")
+api.add_resource(DoctorChartsResource, "/doctor/charts/<int:doctor_id>")
+
+# Backend Result
+api.add_resource(BackendTaskResult, "/backend-task/<task_id>")
