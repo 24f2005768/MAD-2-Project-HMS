@@ -1,6 +1,7 @@
 <template>
     <div class="container d-flex align-items-center justify-content-center flex-grow-1 min-vh-90 min-vw-100">
         <errorToast v-if="errorMessage" :message="errorMessage" @close="errorMessage = ''"/>
+        <successToast v-if="successMessage" :message="successMessage" @close="successMessage = ''"/>
 
         <div v-if="appointment" class = "container">
             <div class = "col">
@@ -24,6 +25,12 @@
 
                 <!-- Always visible  -->
                 <div class = "container">
+                    <div class="d-flex justify-content-end my-2">
+                        <button type = "button" class="btn btn-outline-secondary" onclick = 'history.back()'>
+                            Go Back
+                        </button>
+                    </div>
+
                     <div class = "row">
                         <!-- photo container  -->
                         <div class = "d-flex justify-content-center align-items-center col-4 gap-3">
@@ -89,14 +96,20 @@
                                     <div class="card-body">
                                         <h5 class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</h5>  
                                         <div class = "border-top">
+                                            <p class="card-text mt-2 mb-2"><strong>Appt. ID: </strong>{{ a.appointment_id }}</p>
                                             <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
                                             <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
 
                                             <div v-if="a.status == 'Booked'">
                                                 <div class = "d-flex gap-2 mt-2">
                                                     <button class = "btn btn-outline-danger" v-on:click="cancelAppointment(a.appointment_id)">Cancel</button>
-                                                    <button class = "btn btn-outline-primary">Reschedule</button>
                                                 </div>
+                                            </div>
+
+                                            <div v-else-if="a.status == 'Completed'">
+                                                <RouterLink :to='`/admin/appointment/${a.appointment_id}`'>
+                                                    <button class = "btn btn-outline-secondary">View Details</button>
+                                                </RouterLink>
                                             </div>
                                         </div>
                                     </div>
@@ -118,9 +131,12 @@
                                     <div class="card-body">
                                         <h5 class="card-text mb-2"><strong>Date: </strong>{{ a.date }}</h5> 
                                         <div class = "border-top">
+                                            <p class="card-text mt-2 mb-2"><strong>Appt. ID: </strong>{{ a.appointment_id }}</p>
                                             <p class="card-text mt-2 mb-2"><strong>Time: </strong>{{ a.start_time }} - {{ a.end_time }}</p>
                                             <p class="card-text mb-2"><strong>Status: </strong>{{ a.status }}</p>
-                                            <button class = "btn btn-outline-secondary">View Details</button>
+                                            <RouterLink :to='`/admin/appointment/${a.appointment_id}`'>
+                                                <button class = "btn btn-outline-secondary">View Details</button>
+                                            </RouterLink>
                                         </div>
                                     </div>
                                 </div>
@@ -134,21 +150,25 @@
 </template>
 
 <script>
-    import errorToast from '@/components/errorToast.vue';
     import { requestAPI } from '../../../utils/api';
+    
+    import errorToast from '@/components/errorToast.vue';
+    import successToast from '@/components/successToast.vue';
 
     export default {
         name: "AdminDashViewAppointment",
         data() {
             return {
                 appointment: null,
-                errorMessage: null,
                 patientPfp: null,
-                doctorPfp: null
+                doctorPfp: null,
+                errorMessage: null,
+                successMessage: null
             }
         },
         components: {
-            errorToast
+            errorToast,
+            successToast
         },
         methods: {
             async get_appointment() {
@@ -163,21 +183,39 @@
                     this.errorHandler(error.message)
                 }
             },
-            errorHandler(message) {
-                this.errorMessage = message
-            },
             async cancelAppointment(appointmentID) {
                 try {
                     const cancel_appointment = await requestAPI("PATCH", null, `/cancel-appointment/${appointmentID}`)
+                    this.successHandler("Appointment cancelled successfully!")
                     this.get_appointment()
                 }
                 catch(error) {
                     this.$emit("error", error.message)
                 }
             },
+            errorHandler(message) {
+                this.errorMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.errorMessage = '';
+                }, 5000);
+            },
+            successHandler(message) {
+                this.get_appointment()
+                this.successMessage = message;
+                // Auto clear success after 5 seconds
+                setTimeout(() => {
+                    this.successMessage = '';
+                }, 5000);
+            },
         },
         mounted() {
             this.get_appointment()
+        },
+        watch: {
+            $route(newVal, oldVal) {
+                this.get_appointment()
+            }
         }
     }
 </script>

@@ -12,7 +12,13 @@ time = datetime.min.time()
 date_today = datetime.combine(date_today, time)
 
 # Start Celery Worker
+cd Backend
+source .env/bin/activate
 celery -A app:celery_app worker --loglevel=info
+
+# Start Celery Beat
+cd Backend
+source .env/bin/activate
 celery -A app:celery_app beat --loglevel=info
 
 # virtual env from Backend

@@ -31,7 +31,7 @@
                     
                     <!-- Home  -->
                     <div class="tab-pane fade show active w-100" id="v-tab-home" role="tabpanel">
-                        <PatientProfile @error = "errorHandler" @success="successHandler"/>
+                        <PatientProfile v-if="tabshown == 'home'" @error = "errorHandler" @success="successHandler"/>
                     </div>
 
                     <!-- Stats -->
@@ -46,7 +46,7 @@
 
                     <!-- Appointments  -->
                     <div class="tab-pane fade w-100" id="v-tab-appt" role="tabpanel">
-                        <PatientDashAppointments @error = "errorHandler" @success="successHandler"/>
+                        <PatientDashAppointments v-if="tabshown == 'appts'" @error = "errorHandler" @success="successHandler"/>
                     </div>
                 </div>
             </div>
@@ -59,9 +59,9 @@
     import successToast from '@/components/successToast.vue';
     
     import PatientProfile from '@/components/PatientDashComp/PatientProfile.vue';
+    import PatientDashCharts from '@/components/PatientDashComp/PatientDashCharts.vue';
     import PatientDashDoctors from '@/components/PatientDashComp/PatientDashDoctors.vue';
     import PatientDashAppointments from '@/components/PatientDashComp/PatientDashAppointments.vue';
-    import PatientDashCharts from '@/components/PatientDashComp/PatientDashCharts.vue';
     
     export default {
         name: 'PatientDash',

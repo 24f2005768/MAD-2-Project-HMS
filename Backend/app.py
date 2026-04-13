@@ -11,7 +11,7 @@ from caching_config import cache
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project_database.sqlite3'
-app.secret_key = 'secret'
+app.config['SECRET_KEY'] = 'secret'
 app.config['SECURITY_PASSWORD_SALT'] = 'secret_salt'
 app.config['SECURITY_PASSWORD_HASH'] = 'argon2'
 
@@ -46,9 +46,16 @@ celery_app = celery_init_app(app)
 def setup_periodic_tasks(sender: Celery, **kwargs):
     # Executes every day morning at 7:30 a.m.
     sender.add_periodic_task(
-        crontab(hour=7, minute=30),
+        crontab(hour = 7, minute = 30),
         reminders.patient_daily_reminders.s(),
-        name="daily-reminders"
+        name = "daily-reminders"
+    )
+
+    # Executes 1st of every month morning at 9 a.m.
+    sender.add_periodic_task(
+        crontab(day_of_month = 1, hour = 9, minute = 0),
+        reminders.send_monthly_report_all_doctors.s(),
+        name = "monthly-reminders-all-doctors"
     )
 # ---------------------------------------------------------------------------------------------------------------------------------------------------
 

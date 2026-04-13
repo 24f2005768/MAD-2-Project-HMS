@@ -150,3 +150,25 @@ def monthly_report_doctor(doctor_id):
     message = template.render(appt = prev_month_appts, doctor = doctor, report_message = report_message, now = now)
     send_email(doctor.doctor_user.email, f"Monthly Report {datetime.strftime(now, "%B")}", message = message)
 
+@shared_task()
+def send_monthly_report_all_doctors():
+    now = datetime.now()
+
+    doctors = Doctor.query.all()
+    for doctor in doctors:
+        prev_month_dates = [(date.today() + timedelta(days = -i)) for i in range(1, 32)]
+        prev_month_appts = []
+        for d in prev_month_dates:
+            prev_month_appts += Appointment.query.filter(Appointment.date == d, Appointment.doctor_id == doctor.doctor_id).all()
+
+        # Get the path to monthly_report.html
+        script_dir = Path(__file__).parent
+        template_path = script_dir / "monthly_report.html"
+
+        with open(template_path) as file:
+            template = Template(file.read())
+
+        report_message = f"Hi {doctor.name}, here is your monthly report for {datetime.strftime(now, "%B")}"
+        message = template.render(appt = prev_month_appts, doctor = doctor, report_message = report_message, now = now)
+        send_email(doctor.doctor_user.email, f"Monthly Report {datetime.strftime(now, "%B")}", message = message)
+
